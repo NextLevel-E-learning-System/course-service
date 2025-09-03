@@ -3,7 +3,6 @@ import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { loadOpenApi } from './config/openapi.js';
 import { logger } from './config/logger.js';
-import { healthRouter } from './routes/healthRoutes.js';
 import { courseRouter } from './routes/courseRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -14,7 +13,6 @@ export function createServer() {
   app.use((req, _res, next) => { (req as any).log = logger; next(); });
   const openapiSpec = loadOpenApi('Course Service API');
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
-  app.use(healthRouter);
   app.use('/courses/v1', courseRouter);
   app.use(errorHandler);
   return app;
