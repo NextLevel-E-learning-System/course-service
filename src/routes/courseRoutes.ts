@@ -12,7 +12,7 @@ export const courseRouter = Router();
 courseRouter.use(userContext);
 
 // Catálogo (R04)
-courseRouter.get('/', listCatalogHandler);
+courseRouter.get('/catalogo', listCatalogHandler);
 
 // Dashboard empregado (parte relacionada a cursos) (R03 parcial)
 courseRouter.get('/_dashboard', employeeDashboardHandler);
