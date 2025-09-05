@@ -1,5 +1,35 @@
 import { Router } from 'express';
-import { createCourseHandler, getCourseHandler } from '../controllers/courseController.js';
+import { createCourseHandler, getCourseHandler, updateCourseHandler, activateCourseHandler, deactivateCourseHandler, duplicateCourseHandler } from '../controllers/courseController.js';
+import { enrollCourseHandler, courseProgressHandler } from '../controllers/enrollmentController.js';
+import { addModuleHandler, listModulesHandler, updateModuleHandler } from '../controllers/moduleController.js';
+import { employeeDashboardHandler } from '../controllers/dashboardController.js';
+import { userContext } from '../middleware/userContext.js';
+import { listCatalogHandler } from '../controllers/catalogController.js';
+
 export const courseRouter = Router();
+
+// Middleware simples para extrair contexto de usuário (x-user-id / x-user-role)
+courseRouter.use(userContext);
+
+// Catálogo (R04)
+courseRouter.get('/', listCatalogHandler);
+
+// Dashboard empregado (parte relacionada a cursos) (R03 parcial)
+courseRouter.get('/_dashboard', employeeDashboardHandler);
+
+// CRUD / gerenciamento de curso (R12)
 courseRouter.post('/', createCourseHandler);
 courseRouter.get('/:codigo', getCourseHandler);
+courseRouter.patch('/:codigo', updateCourseHandler);
+courseRouter.post('/:codigo/activate', activateCourseHandler);
+courseRouter.post('/:codigo/deactivate', deactivateCourseHandler);
+courseRouter.post('/:codigo/duplicate', duplicateCourseHandler);
+
+// Módulos (R13)
+courseRouter.post('/:codigo/modules', addModuleHandler);
+courseRouter.get('/:codigo/modules', listModulesHandler);
+courseRouter.patch('/:codigo/modules/:moduleId', updateModuleHandler);
+
+// Inscrição e progresso (R05 / R06)
+courseRouter.post('/:codigo/enroll', enrollCourseHandler);
+courseRouter.get('/:codigo/progress', courseProgressHandler);
