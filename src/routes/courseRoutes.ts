@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { createCourseHandler, getCourseHandler, updateCourseHandler, setCourseActiveHandler, duplicateCourseHandler } from '../controllers/courseController.js';
 import { enrollCourseHandler, courseProgressHandler } from '../controllers/enrollmentController.js';
 import { addModuleHandler, listModulesHandler, updateModuleHandler } from '../controllers/moduleController.js';
-import { employeeDashboardHandler } from '../controllers/dashboardController.js';
 import { userContext } from '../middleware/userContext.js';
 import { listCatalogHandler } from '../controllers/catalogController.js';
 import { listCategoriesHandler, createCategoryHandler } from '../controllers/categoryController.js';
@@ -18,9 +17,6 @@ courseRouter.get('/catalogo', listCatalogHandler);
 // Categorias
 courseRouter.get('/categories', listCategoriesHandler);
 courseRouter.post('/categories', createCategoryHandler);
-
-// Dashboard empregado (parte relacionada a cursos) (R03 parcial)
-courseRouter.get('/_dashboard', employeeDashboardHandler);
 
 // CRUD / gerenciamento de curso (R12)
 courseRouter.post('/', createCourseHandler);

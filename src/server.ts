@@ -9,7 +9,9 @@ import staticFilesMiddleware from './middleware/staticFiles.js';
 
 export function createServer() {
   const app = express();
-  app.use(express.json());
+  // Aumentar limite para uploads de arquivos (50MB)
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
   app.use(cors({ origin: '*' }));
   app.use((req, _res, next) => { (req as any).log = logger; next(); });
   
