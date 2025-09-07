@@ -1,3 +1,5 @@
+export type NivelDificuldade = 'Básico' | 'Intermediário' | 'Avançado';
+
 export interface Course {
   codigo: string;
   titulo: string;
@@ -6,7 +8,7 @@ export interface Course {
   instrutor_id?: string | null;
   duracao_estimada?: number | null;
   xp_oferecido?: number | null;
-  nivel_dificuldade?: string | null;
+  nivel_dificuldade?: NivelDificuldade | null;
   ativo: boolean;
   pre_requisitos: string[];
 }
@@ -35,7 +37,7 @@ export interface CatalogFilters {
 }
 
 export interface CatalogItem {
-  codigo: string; titulo: string; descricao?: string | null; duracao_estimada?: number | null; xp_oferecido?: number | null; nivel_dificuldade?: string | null; pre_requisitos: string[]; prerequisitos_pendentes: string[];
+  codigo: string; titulo: string; descricao?: string | null; duracao_estimada?: number | null; xp_oferecido?: number | null; nivel_dificuldade?: NivelDificuldade | null; pre_requisitos: string[]; prerequisitos_pendentes: string[];
 }
 
 export interface EmployeeDashboard {

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { createCourseSchema } from '../validation/courseSchemas.js';
+import { createCourseSchema, updateCourseSchema } from '../validation/courseSchemas.js';
 import { createCourse, getCourse, updateCourse, setCourseActive, duplicateCourse } from '../services/courseService.js';
 import { HttpError } from '../utils/httpError.js';
 export async function createCourseHandler(req:Request,res:Response,next:NextFunction){
@@ -9,7 +9,9 @@ export async function createCourseHandler(req:Request,res:Response,next:NextFunc
 export async function getCourseHandler(req:Request,res:Response,next:NextFunction){
   try { const r = await getCourse(req.params.codigo); res.json(r);} catch(e){ next(e);} }
 export async function updateCourseHandler(req:Request,res:Response,next:NextFunction){
-  try { const r = await updateCourse(req.params.codigo, req.body); res.json(r);} catch(e){ next(e);} }
+  const parsed = updateCourseSchema.safeParse(req.body);
+  if(!parsed.success) return next(new HttpError(400,'validation_error', parsed.error.issues));
+  try { const r = await updateCourse(req.params.codigo, parsed.data); res.json(r);} catch(e){ next(e);} }
 interface FieldIssue { path:(string|number)[]; message:string }
 export async function setCourseActiveHandler(req:Request,res:Response,next:NextFunction){
   try {

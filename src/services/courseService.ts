@@ -1,6 +1,7 @@
 import { insertCourse, findByCodigo, updateCourseDb, setCourseActiveDb, duplicateCourseDb, hasActiveEnrollments } from '../repositories/courseRepository.js';
-interface CreateCourseInput { codigo:string; titulo:string; descricao?:string; categoria_id?:string; instrutor_id?:string; duracao_estimada?:number; xp_oferecido?:number; nivel_dificuldade?:string; pre_requisitos?:string[] }
-interface UpdateCourseInput { titulo?:string; descricao?:string; categoria_id?:string; instrutor_id?:string; duracao_estimada?:number; xp_oferecido?:number; nivel_dificuldade?:string; pre_requisitos?:string[] }
+import { NivelDificuldade } from '../types/domain.js';
+interface CreateCourseInput { codigo:string; titulo:string; descricao?:string; categoria_id?:string; instrutor_id?:string; duracao_estimada?:number; xp_oferecido?:number; nivel_dificuldade?:NivelDificuldade; pre_requisitos?:string[] }
+interface UpdateCourseInput { titulo?:string; descricao?:string; categoria_id?:string; instrutor_id?:string; duracao_estimada?:number; xp_oferecido?:number; nivel_dificuldade?:NivelDificuldade; pre_requisitos?:string[] }
 import { HttpError } from '../utils/httpError.js';
 export async function createCourse(data:CreateCourseInput){
   try { await insertCourse(data); return { codigo: data.codigo }; } catch (err:unknown){ if (typeof err === 'object' && err && (err as { code?:string }).code === '23505') throw new HttpError(409,'duplicado'); throw err; }
