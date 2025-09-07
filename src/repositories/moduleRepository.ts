@@ -10,7 +10,7 @@ export async function addModuleDb(codigo:string,data:ModuleInput){
 export async function listModulesDb(codigo:string){
   return withClient(c=>c.query('select id,titulo,ordem,obrigatorio,xp_modulo as xp from course_service.modulos where curso_id=$1 order by ordem asc',[codigo]).then(r=>r.rows));
 }
-export async function updateModuleDb(_codigo:string,moduleId:string,data:Partial<ModuleInput>){
+export async function updateModuleDb(_codigo:string,moduloId:string,data:Partial<ModuleInput>){
   const fields:string[] = []; const values:unknown[] = []; let idx=1;
   const map: Record<string,string> = { xp: 'xp_modulo' };
   const record = data as Record<string, unknown>;
@@ -18,6 +18,6 @@ export async function updateModuleDb(_codigo:string,moduleId:string,data:Partial
     if(k in record){ const col = map[k] || k; fields.push(`${col}=$${idx++}`); values.push(record[k]); }
   }
   if(!fields.length) return;
-  values.push(moduleId);
+  values.push(moduloId);
   await withClient(c=>c.query(`update course_service.modulos set ${fields.join(', ')} where id=$${idx}` , values));
 }

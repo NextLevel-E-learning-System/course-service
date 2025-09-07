@@ -30,12 +30,12 @@ courseRouter.patch('/:codigo/active', setCourseActiveHandler);
 courseRouter.post('/:codigo/duplicate', duplicateCourseHandler);
 
 // Módulos (R13)
-courseRouter.post('/:codigo/modules', addModuleHandler);
-courseRouter.get('/:codigo/modules', listModulesHandler);
-courseRouter.patch('/:codigo/modules/:moduleId', updateModuleHandler);
+courseRouter.post('/:codigo/modulos', addModuleHandler);
+courseRouter.get('/:codigo/modulos', listModulesHandler);
+courseRouter.patch('/:codigo/modulos/:moduloId', updateModuleHandler);
 // Materiais do módulo
-courseRouter.post('/modules/:moduleId/materials', addMaterialHandler);
-courseRouter.get('/modules/:moduleId/materials', listMaterialsHandler);
+courseRouter.post('/modulos/:moduloId/materiais', addMaterialHandler);
+courseRouter.get('/modulos/:moduloId/materiais', listMaterialsHandler);
 
 // Inscrição e progresso (R05 / R06)
 courseRouter.post('/:codigo/enroll', enrollCourseHandler);
