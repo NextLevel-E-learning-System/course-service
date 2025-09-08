@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { createCourseHandler, getCourseHandler, updateCourseHandler, setCourseActiveHandler, duplicateCourseHandler } from '../controllers/courseController.js';
-import { enrollCourseHandler, courseProgressHandler } from '../controllers/enrollmentController.js';
 import { addModuleHandler, listModulesHandler, updateModuleHandler } from '../controllers/moduleController.js';
 import { userContext } from '../middleware/userContext.js';
 import { listCatalogHandler } from '../controllers/catalogController.js';
@@ -32,7 +31,3 @@ courseRouter.patch('/:codigo/modulos/:moduloId', updateModuleHandler);
 // Materiais do módulo
 courseRouter.post('/modulos/:moduloId/materiais', addMaterialHandler);
 courseRouter.get('/modulos/:moduloId/materiais', listMaterialsHandler);
-
-// Inscrição e progresso (R05 / R06)
-courseRouter.post('/:codigo/enroll', enrollCourseHandler);
-courseRouter.get('/:codigo/progress', courseProgressHandler);

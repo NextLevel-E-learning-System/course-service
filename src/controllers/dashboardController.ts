@@ -6,7 +6,7 @@ export async function employeeDashboardHandler(req: Request, res: Response, next
     const user = (req as any).user;
     
     // Determina qual dashboard mostrar baseado no role
-    if (user.roles?.includes('ADMINISTRADOR')) {
+    if (user.roles?.includes('ADMIN')) {
       const result = await getAdminDashboard();
       res.json(result);
     } else if (user.roles?.includes('INSTRUTOR')) {
