@@ -5,5 +5,8 @@ export async function insertMaterial(d:{ modulo_id:string; nome_arquivo:string; 
 }
 
 export async function listMaterials(moduloId:string){
-  return withClient(async c=>{ const r = await c.query('select id, modulo_id, nome_arquivo, tipo_arquivo, coalesce(storage_key, url_storage) as storage_key, tamanho, criado_em from course_service.materiais where modulo_id=$1 order by criado_em desc',[moduloId]); return r.rows; });
+  return withClient(async c=>{ 
+    const r = await c.query('select id, modulo_id, nome_arquivo, tipo_arquivo, storage_key, tamanho, criado_em from course_service.materiais where modulo_id=$1 order by criado_em desc',[moduloId]); 
+    return r.rows; 
+  });
 }
