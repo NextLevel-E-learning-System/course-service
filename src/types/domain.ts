@@ -44,7 +44,6 @@ export interface EmployeeDashboard {
   xp_atual: number; nivel_atual: number; proximo_badge: string | null; ranking_departamento: number | null;
   cursos_em_andamento: { codigo: string; titulo: string }[];
   cursos_concluidos: { codigo: string; titulo: string }[];
-  cursos_disponiveis: CatalogItem[];
   timeline: unknown[];
 }
 
