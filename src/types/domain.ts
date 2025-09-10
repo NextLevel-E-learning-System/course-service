@@ -37,7 +37,15 @@ export interface CatalogFilters {
 }
 
 export interface CatalogItem {
-  codigo: string; titulo: string; descricao?: string | null; duracao_estimada?: number | null; xp_oferecido?: number | null; nivel_dificuldade?: NivelDificuldade | null; pre_requisitos: string[]; prerequisitos_pendentes: string[];
+  codigo: string; 
+  titulo: string; 
+  descricao?: string | null; 
+  categoria_id?: string | null;
+  duracao_estimada?: number | null; 
+  xp_oferecido?: number | null; 
+  nivel_dificuldade?: NivelDificuldade | null; 
+  pre_requisitos: string[]; 
+  idstrutor_id?: string | null;
 }
 
 export interface EmployeeDashboard {
