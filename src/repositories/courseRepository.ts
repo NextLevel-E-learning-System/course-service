@@ -37,3 +37,41 @@ export async function hasActiveEnrollments(codigo:string){
   return withClient(c=>c.query('select 1 from progress_service.inscricoes where curso_id=$1 and status=$2 limit 1',[codigo,'EM_ANDAMENTO']).then(r=>!!r.rows[0]));
 }
 
+// Função unificada com filtro opcional por status
+export async function listCursosInstrutor(instrutorId: string, opts?: { ativo?: boolean | 'ALL' }){
+  const ativo = opts?.ativo;
+  return withClient(async c => {
+    const base = `select codigo, titulo, descricao, ativo, categoria_id, updated_at, created_at, instrutor_id
+                    from course_service.cursos
+                   where instrutor_id = $1`;
+    let sql = base;
+  const params: unknown[] = [instrutorId];
+    if (ativo === true) sql += ' and ativo = true';
+    else if (ativo === false) sql += ' and ativo = false';
+    sql += ' order by ativo desc, updated_at desc, created_at desc';
+    const r = await c.query(sql, params);
+    return r.rows;
+  });
+}
+
+// Removidos helpers redundantes: usar listCursosInstrutor diretamente
+
+export async function reativarCursosInstrutor(instrutorId: string, cursos?: string[]){
+  return withClient(async c => {
+    // Usa função SQL se existir, caso contrário fallback simples
+    try {
+      const r = await c.query('select course_service.reativar_meus_cursos($1,$2) as payload',[instrutorId, cursos || null]);
+      return r.rows[0].payload;
+    } catch {
+      // Fallback: update direto
+      if(cursos && cursos.length){
+        await c.query('update course_service.cursos set ativo=true where instrutor_id=$1 and codigo = any($2::text[])',[instrutorId, cursos]);
+      } else {
+        await c.query('update course_service.cursos set ativo=true where instrutor_id=$1',[instrutorId]);
+      }
+      const resumo = await c.query('select count(*) filter (where ativo) as ativos, count(*) filter (where not ativo) as inativos from course_service.cursos where instrutor_id=$1',[instrutorId]);
+      return { instrutor_id: instrutorId, cursos_ativos: Number(resumo.rows[0].ativos), cursos_inativos: Number(resumo.rows[0].inativos) };
+    }
+  });
+}
+

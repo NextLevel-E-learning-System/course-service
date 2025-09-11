@@ -36,6 +36,42 @@
     },
     "/courses/v1/catalogo": { 
       "get": { "summary": "Catálogo de cursos disponíveis", "tags": ["catalog"], "parameters": [ { "name":"categoria", "in":"query", "schema": { "type":"string" } }, { "name":"instrutor", "in":"query", "schema": { "type":"string" } }, { "name":"nivel", "in":"query", "schema": { "type":"string" } }, { "name":"duracaoMax", "in":"query", "schema": { "type":"integer" } } ], "responses": { "200": { "description": "Lista de cursos disponíveis" } } } 
+    },
+    "/courses/v1/me": {
+      "get": {
+        "summary": "Listar meus cursos (filtro opcional status=ATIVOS|INATIVOS)",
+        "tags": ["instructor"],
+        "security": [{"bearerAuth":[]}],
+        "parameters": [ {"name":"status","in":"query","schema":{"type":"string","enum":["ATIVOS","INATIVOS"]}} ],
+        "responses": {
+          "200": {"description": "Lista de cursos do instrutor"},
+          "403": {"description": "Acesso negado"}
+        }
+      }
+    },
+  "/courses/v1/me/reativar": {
+      "patch": {
+        "summary": "Reativar meus cursos inativos (INSTRUTOR ou ADMIN)",
+        "tags": ["instructor"],
+        "security": [{"bearerAuth":[]}],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "codigos": {"type": "array", "items": {"type": "string"}, "description": "Lista opcional de códigos; se omitido reativa todos"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Resumo de reativação"},
+          "403": {"description": "Acesso negado"}
+        }
+      }
     }
   }
 }

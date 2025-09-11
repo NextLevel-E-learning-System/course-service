@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createCourseHandler, getCourseHandler, updateCourseHandler, setCourseActiveHandler, duplicateCourseHandler } from '../controllers/courseController.js';
+import { createCourseHandler, getCourseHandler, updateCourseHandler, setCourseActiveHandler, duplicateCourseHandler, listMyCoursesUnifiedHandler, reactivateMyCoursesUnifiedHandler } from '../controllers/courseController.js';
 import { addModuleHandler, listModulesHandler, updateModuleHandler } from '../controllers/moduleController.js';
 import { userContext } from '../middleware/userContext.js';
 import { listCatalogHandler } from '../controllers/catalogController.js';
@@ -31,3 +31,10 @@ courseRouter.patch('/:codigo/modulos/:moduloId', updateModuleHandler);
 // Materiais do módulo
 courseRouter.post('/modulos/:moduloId/materiais', addMaterialHandler);
 courseRouter.get('/modulos/:moduloId/materiais', listMaterialsHandler);
+
+// ====== Rotas self-service unificadas do instrutor ======
+// GET /courses/v1/me?status=ATIVOS|INATIVOS (omitido = todos)
+courseRouter.get('/me', listMyCoursesUnifiedHandler);
+// PATCH /courses/v1/me/reativar { codigos?: string[] }
+courseRouter.patch('/me/reativar', reactivateMyCoursesUnifiedHandler);
+
