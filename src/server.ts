@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import swaggerUi from 'swagger-ui-express';
 import { loadOpenApi } from './config/openapi.js';
 import { logger } from './config/logger.js';
 import { courseRouter } from './routes/courseRoutes.js';
@@ -20,7 +19,6 @@ export function createServer() {
   
   const openapiSpec = loadOpenApi('Course Service API');
   app.get('/openapi.json', (_req, res) => res.json(openapiSpec));
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
   app.use('/courses/v1', courseRouter);
   app.use(errorHandler);
   return app;
