@@ -19,6 +19,7 @@ export function createServer() {
   app.use(staticFilesMiddleware);
   
   const openapiSpec = loadOpenApi('Course Service API');
+  app.get('/openapi.json', (_req, res) => res.json(openapiSpec));
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
   app.use('/courses/v1', courseRouter);
   app.use(errorHandler);
