@@ -17,8 +17,14 @@ export function createServer() {
   // Middleware para servir arquivos estáticos (apenas em modo local)
   app.use(staticFilesMiddleware);
   
-  const openapiSpec = loadOpenApi('Course Service API');
-  app.get('/openapi.json', (_req, res) => res.json(openapiSpec));
+  app.get('/openapi.json', async (_req, res) => {
+    try {
+      const openapiSpec = await loadOpenApi('Course Service API');
+      res.json(openapiSpec);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to load OpenAPI spec' });
+    }
+  });
   app.use('/courses/v1', courseRouter);
   app.use(errorHandler);
   return app;

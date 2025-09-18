@@ -1,4 +1,4 @@
-{
+export const openapiSpec = {
   "openapi": "3.0.3",
   "info": { 
     "title": "Course Service API", 
@@ -6,9 +6,9 @@
     "description": "API completa para gestão de cursos, módulos e materiais com upload automático"
   },
   "paths": {
-    "/courses/v1/categories": { 
-      "get": { "summary": "Listar categorias", "tags": ["categories"], "responses": { "200": { "description": "Lista de categorias" } } }, 
-      "post": { "summary": "Criar categoria", "tags": ["categories"], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["codigo","nome"], "properties": { "codigo": { "type": "string" }, "nome": { "type": "string" }, "descricao": { "type": "string" }, "cor_hex": { "type": "string", "pattern": "^#?[0-9A-Fa-f]{6}$" } } } } } }, "responses": { "201": { "description": "Categoria criada" }, "409": { "description": "Código duplicado" } } } 
+    "/courses/v1/categorias": { 
+      "get": { "summary": "Listar categorias", "tags": ["categorias"], "responses": { "200": { "description": "Lista de categorias" } } }, 
+      "post": { "summary": "Criar categoria", "tags": ["categorias"], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["codigo","nome"], "properties": { "codigo": { "type": "string" }, "nome": { "type": "string" }, "descricao": { "type": "string" }, "cor_hex": { "type": "string", "pattern": "^#?[0-9A-Fa-f]{6}$" } } } } } }, "responses": { "201": { "description": "Categoria criada" }, "409": { "description": "Código duplicado" } } } 
     },
     "/courses/v1": { 
       "post": { "summary": "Criar curso", "tags": ["courses"], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["codigo", "titulo"], "properties": { "codigo": { "type": "string" }, "titulo": { "type": "string" }, "descricao": { "type": "string" }, "categoria_id": { "type": "string" }, "instrutor_id": { "type": "string", "format": "uuid" }, "duracao_estimada": { "type": "integer", "description": "Duração em horas" }, "xp_oferecido": { "type": "integer" }, "nivel_dificuldade": { "type": "string", "enum": ["Básico", "Intermediário", "Avançado"] }, "pre_requisitos": { "type": "array", "items": { "type": "string" } } } } } } }, "responses": { "201": { "description": "Curso criado" }, "409": { "description": "Código duplicado" } } } 
@@ -49,7 +49,7 @@
         }
       }
     },
-  "/courses/v1/me/reativar": {
+    "/courses/v1/me/reativar": {
       "patch": {
         "summary": "Reativar meus cursos inativos (INSTRUTOR ou ADMIN)",
         "tags": ["instructor"],
@@ -74,4 +74,4 @@
       }
     }
   }
-}
+} as const;

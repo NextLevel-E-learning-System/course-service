@@ -11,8 +11,8 @@ export const courseRouter = Router();
 courseRouter.use(userContext);
 
 courseRouter.get('/catalogo', listCatalogHandler);
-courseRouter.get('/categories', listCategoriesHandler);
-courseRouter.post('/categories', createCategoryHandler);
+courseRouter.get('/categorias', listCategoriesHandler);
+courseRouter.post('/categorias', createCategoryHandler);
 
 courseRouter.post('/', createCourseHandler);
 courseRouter.get('/:codigo', getCourseHandler);
