@@ -8,6 +8,7 @@ import {
   type CategoryCreate,
   type CategoryUpdate
 } from '../repositories/categoryRepository.js';
+import { withClient } from '../db.js';
 import { HttpError } from '../utils/httpError.js';
 
 export async function getCategories(): Promise<Category[]> {
@@ -55,6 +56,18 @@ export async function deleteCategoryById(codigo: string): Promise<void> {
   const existing = await getCategoryByCode(codigo);
   if (!existing) {
     throw new HttpError(404, 'Categoria não encontrada');
+  }
+
+  const cursosAssociados = await withClient(async c => {
+    const r = await c.query(
+      'SELECT COUNT(*) as count FROM course_service.cursos WHERE categoria_id = $1',
+      [codigo]
+    );
+    return parseInt(r.rows[0].count);
+  });
+
+  if (cursosAssociados > 0) {
+    throw new HttpError(409, `Não é possível excluir categoria que possui ${cursosAssociados} curso(s) associado(s)`);
   }
 
   try {
