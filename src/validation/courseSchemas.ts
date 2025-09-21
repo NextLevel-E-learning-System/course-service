@@ -24,3 +24,23 @@ export const updateCourseSchema = z.object({
   nivel_dificuldade: z.enum(niveisDefinidos).optional(),
   pre_requisitos: z.array(z.string()).optional()
 });
+
+// Schemas de validação para categorias
+export const createCategorySchema = z.object({
+  codigo: z.string().min(1, 'Código é obrigatório'),
+  nome: z.string().min(1, 'Nome é obrigatório'),
+  descricao: z.string().optional(),
+  departamento_codigo: z.string().min(1, 'Código do departamento é obrigatório'),
+  cor_hex: z.string().regex(/^#?[0-9A-Fa-f]{6}$/, 'Cor deve estar no formato hexadecimal').optional()
+});
+
+export const updateCategorySchema = z.object({
+  nome: z.string().min(1, 'Nome é obrigatório').optional(),
+  descricao: z.string().optional(),
+  departamento_codigo: z.string().min(1, 'Código do departamento é obrigatório').optional(),
+  cor_hex: z.string().regex(/^#?[0-9A-Fa-f]{6}$/, 'Cor deve estar no formato hexadecimal').optional()
+});
+
+export const categoryParamsSchema = z.object({
+  codigo: z.string().min(1, 'Código da categoria é obrigatório')
+});

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { createCourseHandler, getCourseHandler, updateCourseHandler, setCourseActiveHandler, duplicateCourseHandler, listMyCoursesUnifiedHandler, reactivateMyCoursesUnifiedHandler } from '../controllers/courseController.js';
 import { addModuleHandler, listModulesHandler, updateModuleHandler } from '../controllers/moduleController.js';
 import { listCatalogHandler } from '../controllers/catalogController.js';
-import { listCategoriesHandler, createCategoryHandler } from '../controllers/categoryController.js';
+import { listCategoriesHandler, getCategoryHandler, createCategoryHandler, updateCategoryHandler, deleteCategoryHandler } from '../controllers/categoryController.js';
 import { addMaterialHandler, listMaterialsHandler } from '../controllers/materialController.js';
 
 export const courseRouter = Router();
@@ -10,6 +10,9 @@ export const courseRouter = Router();
 courseRouter.get('/catalogo', listCatalogHandler);
 courseRouter.get('/categorias', listCategoriesHandler);
 courseRouter.post('/categorias', createCategoryHandler);
+courseRouter.get('/categorias/:codigo', getCategoryHandler);
+courseRouter.put('/categorias/:codigo', updateCategoryHandler);
+courseRouter.delete('/categorias/:codigo', deleteCategoryHandler);
 
 courseRouter.post('/', createCourseHandler);
 courseRouter.get('/:codigo', getCourseHandler);
