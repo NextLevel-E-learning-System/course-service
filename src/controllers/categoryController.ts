@@ -11,11 +11,6 @@ import {
   updateCategorySchema, 
   categoryParamsSchema 
 } from '../validation/courseSchemas.js';
-import { HttpError } from '../utils/httpError.js';
-
-interface AuthenticatedRequest extends Request {
-  userRole?: string;
-}
 
 export async function listCategoriesHandler(_req: Request, res: Response, next: NextFunction) {
   try {
@@ -36,11 +31,7 @@ export async function getCategoryHandler(req: Request, res: Response, next: Next
   }
 }
 
-export async function createCategoryHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  if (req.userRole !== 'ADMIN') {
-    return next(new HttpError(403, 'Acesso negado. Apenas administradores podem criar categorias.'));
-  }
-
+export async function createCategoryHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const validatedData = createCategorySchema.parse(req.body);
     const result = await createCategory(validatedData);
@@ -50,11 +41,7 @@ export async function createCategoryHandler(req: AuthenticatedRequest, res: Resp
   }
 }
 
-export async function updateCategoryHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  if (req.userRole !== 'ADMIN') {
-    return next(new HttpError(403, 'Acesso negado. Apenas administradores podem atualizar categorias.'));
-  }
-
+export async function updateCategoryHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const { codigo } = categoryParamsSchema.parse(req.params);
     const validatedData = updateCategorySchema.parse(req.body);
@@ -65,11 +52,7 @@ export async function updateCategoryHandler(req: AuthenticatedRequest, res: Resp
   }
 }
 
-export async function deleteCategoryHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  if (req.userRole !== 'ADMIN') {
-    return next(new HttpError(403, 'Acesso negado. Apenas administradores podem excluir categorias.'));
-  }
-
+export async function deleteCategoryHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const { codigo } = categoryParamsSchema.parse(req.params);
     await deleteCategoryById(codigo);
