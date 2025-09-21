@@ -1,14 +1,11 @@
 import { Router } from 'express';
 import { createCourseHandler, getCourseHandler, updateCourseHandler, setCourseActiveHandler, duplicateCourseHandler, listMyCoursesUnifiedHandler, reactivateMyCoursesUnifiedHandler } from '../controllers/courseController.js';
 import { addModuleHandler, listModulesHandler, updateModuleHandler } from '../controllers/moduleController.js';
-import { userContext } from '../middleware/userContext.js';
 import { listCatalogHandler } from '../controllers/catalogController.js';
 import { listCategoriesHandler, createCategoryHandler } from '../controllers/categoryController.js';
 import { addMaterialHandler, listMaterialsHandler } from '../controllers/materialController.js';
 
 export const courseRouter = Router();
-
-courseRouter.use(userContext);
 
 courseRouter.get('/catalogo', listCatalogHandler);
 courseRouter.get('/categorias', listCategoriesHandler);
