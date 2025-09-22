@@ -62,7 +62,7 @@ export async function getAllCoursesHandler(req: Request, res: Response, next: Ne
       // Filtros adicionais
       departamento: req.query.departamento as string | undefined,
       categoria_id: req.query.categoria_id as string | undefined,
-      ativo: req.query.ativo ? (req.query.ativo === 'true') : 'ALL' as boolean | 'ALL'
+      ativo: req.query.ativo === 'true' ? true : req.query.ativo === 'false' ? false : undefined
     };
     
     // Verificar permissões baseadas no role
@@ -83,7 +83,7 @@ export async function getAllCoursesHandler(req: Request, res: Response, next: Ne
       
     } else if (user.role === 'INSTRUTOR') {
       // INSTRUTOR vê apenas seus próprios cursos
-      result = await cursosInstrutorFiltrados(user.id, filters.ativo);
+      result = await cursosInstrutorFiltrados(user.id);
       
     } else {
       // ALUNO pode ver cursos ativos (catálogo público)
@@ -207,10 +207,7 @@ export async function listMyCoursesUnifiedHandler(req:Request,res:Response,next:
   const user = (req as unknown as { user: UserCtx }).user;
     if(!user.id) throw new HttpError(401,'no_user');
     if(!['INSTRUTOR','ADMIN'].includes(user.role)) throw new HttpError(403,'forbidden');
-    const status = (req.query.status as string|undefined)?.toUpperCase();
-    let ativo: boolean | 'ALL' = 'ALL';
-    if(status === 'ATIVOS') ativo = true; else if(status === 'INATIVOS') ativo = false;
-    const data = await cursosInstrutorFiltrados(user.id, ativo);
+    const data = await cursosInstrutorFiltrados(user.id);
     res.json({ items: data, total: data.length });
   } catch(e){ next(e);} }
 export async function reactivateMyCoursesUnifiedHandler(req:Request,res:Response,next:NextFunction){

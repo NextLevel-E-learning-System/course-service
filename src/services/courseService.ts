@@ -76,7 +76,7 @@ export async function reativarCursosDoInstrutor(instrutorId: string, cursos?: st
   return reativarCursosInstrutor(instrutorId, cursos);
 }
 
-export async function cursosInstrutorFiltrados(instrutorId: string, ativo: boolean | 'ALL'){
-  return listCursosInstrutor(instrutorId, { ativo });
+export async function cursosInstrutorFiltrados(instrutorId: string){
+  return listCursosInstrutor(instrutorId);
 }
 
