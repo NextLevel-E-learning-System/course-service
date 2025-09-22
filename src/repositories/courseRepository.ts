@@ -37,6 +37,65 @@ export async function hasActiveEnrollments(codigo:string){
   return withClient(c=>c.query('select 1 from progress_service.inscricoes where curso_id=$1 and status=$2 limit 1',[codigo,'EM_ANDAMENTO']).then(r=>!!r.rows[0]));
 }
 
+export async function listAllCourses(){
+  return withClient(async c => {
+    const r = await c.query(`
+      select c.codigo, c.titulo, c.descricao, c.categoria_id, c.instrutor_id, 
+             c.duracao_estimada, c.xp_oferecido, c.nivel_dificuldade, c.ativo, 
+             c.pre_requisitos, c.criado_em, c.atualizado_em,
+             cat.nome as categoria_nome,
+             cat.departamento_codigo,
+             f.nome as instrutor_nome
+      from course_service.cursos c
+      left join course_service.categorias cat on c.categoria_id = cat.codigo
+      left join user_service.instrutores i on c.instrutor_id = i.funcionario_id
+      left join user_service.funcionarios f on i.funcionario_id = f.id
+      order by c.ativo desc, c.atualizado_em desc
+    `);
+    return r.rows;
+  });
+}
+
+export async function listCoursesByCategory(categoriaId: string){
+  return withClient(async c => {
+    const r = await c.query(`
+      select c.codigo, c.titulo, c.descricao, c.categoria_id, c.instrutor_id, 
+             c.duracao_estimada, c.xp_oferecido, c.nivel_dificuldade, c.ativo, 
+             c.pre_requisitos, c.criado_em, c.atualizado_em,
+             cat.nome as categoria_nome,
+             cat.departamento_codigo,
+             f.nome as instrutor_nome
+      from course_service.cursos c
+      left join course_service.categorias cat on c.categoria_id = cat.codigo
+      left join user_service.instrutores i on c.instrutor_id = i.funcionario_id
+      left join user_service.funcionarios f on i.funcionario_id = f.id
+      where c.categoria_id = $1
+      order by c.ativo desc, c.atualizado_em desc
+    `, [categoriaId]);
+    return r.rows;
+  });
+}
+
+export async function listCoursesByDepartment(departmentCode: string){
+  return withClient(async c => {
+    const r = await c.query(`
+      select c.codigo, c.titulo, c.descricao, c.categoria_id, c.instrutor_id, 
+             c.duracao_estimada, c.xp_oferecido, c.nivel_dificuldade, c.ativo, 
+             c.pre_requisitos, c.criado_em, c.atualizado_em,
+             cat.nome as categoria_nome,
+             cat.departamento_codigo,
+             f.nome as instrutor_nome
+      from course_service.cursos c
+      left join course_service.categorias cat on c.categoria_id = cat.codigo
+      left join user_service.instrutores i on c.instrutor_id = i.funcionario_id
+      left join user_service.funcionarios f on i.funcionario_id = f.id
+      where cat.departamento_codigo = $1
+      order by c.ativo desc, c.atualizado_em desc
+    `, [departmentCode]);
+    return r.rows;
+  });
+}
+
 // Função unificada com filtro opcional por status
 export async function listCursosInstrutor(instrutorId: string, opts?: { ativo?: boolean | 'ALL' }){
   const ativo = opts?.ativo;
