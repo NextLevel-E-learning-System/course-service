@@ -9,8 +9,6 @@ import {
   setCourseActiveHandler, 
   duplicateCourseHandler,
   deleteCourseHandler,
-  listMyCoursesUnifiedHandler, 
-  reactivateMyCoursesUnifiedHandler 
 } from '../controllers/courseController.js';
 import { addModuleHandler, listModulesHandler, updateModuleHandler } from '../controllers/moduleController.js';
 import { listCategoriesHandler, getCategoryHandler, createCategoryHandler, updateCategoryHandler, deleteCategoryHandler } from '../controllers/categoryController.js';
@@ -46,8 +44,3 @@ courseRouter.patch('/:codigo/modulos/:moduloId', updateModuleHandler);
 // Rotas de materiais
 courseRouter.post('/modulos/:moduloId/materiais', addMaterialHandler);
 courseRouter.get('/modulos/:moduloId/materiais', listMaterialsHandler);
-
-// Rotas específicas do instrutor
-courseRouter.get('/me/cursos', listMyCoursesUnifiedHandler);
-courseRouter.patch('/me/cursos/reativar', reactivateMyCoursesUnifiedHandler);
-

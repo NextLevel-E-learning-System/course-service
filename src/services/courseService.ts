@@ -1,8 +1,7 @@
-import { insertCourse, findByCodigo, updateCourseDb, setCourseActiveDb, duplicateCourseDb, hasActiveEnrollments, listCursosInstrutor, reativarCursosInstrutor, listAllCourses, listCoursesByCategory, listCoursesByDepartment } from '../repositories/courseRepository.js';
+import { insertCourse, findByCodigo, updateCourseDb, setCourseActiveDb, duplicateCourseDb, hasActiveEnrollments, listAllCourses, listCoursesByCategory, listCoursesByDepartment } from '../repositories/courseRepository.js';
 import { NivelDificuldade } from '../types/domain.js';
 interface CreateCourseInput { codigo:string; titulo:string; descricao?:string; categoria_id?:string; instrutor_id?:string; duracao_estimada?:number; xp_oferecido?:number; nivel_dificuldade?:NivelDificuldade; pre_requisitos?:string[] }
 interface UpdateCourseInput { titulo?:string; descricao?:string; categoria_id?:string; instrutor_id?:string; duracao_estimada?:number; xp_oferecido?:number; nivel_dificuldade?:NivelDificuldade; pre_requisitos?:string[] }
-interface UserContext { id: string; role: 'ADMIN' | 'GERENTE' | 'INSTRUTOR' | 'ALUNO' }
 import { HttpError } from '../utils/httpError.js';
 
 export async function createCourse(data:CreateCourseInput){
@@ -27,14 +26,14 @@ export async function getCoursesByDepartment(departmentCode: string){
   return listCoursesByDepartment(departmentCode);
 }
 
-export async function updateCourse(codigo:string, data:UpdateCourseInput, user?: UserContext){ 
+export async function updateCourse(codigo:string, data:UpdateCourseInput){ 
   const existing = await findByCodigo(codigo); 
   if(!existing) throw new HttpError(404,'nao_encontrado'); 
   
   // Verificar permissões para edição
-  const canEdit = await canEditCourse(codigo, user);
+  const canEdit = await canEditCourse(codigo);
   if (!canEdit) {
-    throw new HttpError(403, 'Não é possível editar curso com inscrições ativas. Apenas ADMIN e GERENTE podem editar cursos com inscrições.');
+    throw new HttpError(403, 'Não é possível editar curso com inscrições ativas.');
   }
   
   await updateCourseDb(codigo,data); 
@@ -59,24 +58,9 @@ export async function duplicateCourse(codigo:string){
   return { codigo_original: codigo, codigo_copia: newCodigo }; 
 }
 
-// Função auxiliar para verificar se pode editar curso
-async function canEditCourse(codigo: string, user?: UserContext): Promise<boolean> {
-  // ADMIN e GERENTE sempre podem editar
-  if (user && ['ADMIN', 'GERENTE'].includes(user.role)) {
-    return true;
-  }
-  
-  // Para outros usuários, verificar se há inscrições ativas
+async function canEditCourse(codigo: string): Promise<boolean> {
+  // Verificar se há inscrições ativas
   const activeEnrollments = await hasActiveEnrollments(codigo);
   return !activeEnrollments;
-}
-
-// ===== Instrutor self endpoints =====
-export async function reativarCursosDoInstrutor(instrutorId: string, cursos?: string[]){
-  return reativarCursosInstrutor(instrutorId, cursos);
-}
-
-export async function cursosInstrutorFiltrados(instrutorId: string){
-  return listCursosInstrutor(instrutorId);
 }
 
