@@ -109,6 +109,11 @@ export async function getAllCoursesHandler(req: Request, res: Response, next: Ne
         return true;
       });
     }
+
+    // Aplicar filtro por status ativo se especificado
+    if (filters.ativo !== undefined) {
+      result = result.filter(course => course.ativo === filters.ativo);
+    }
     
     res.json({ items: result, total: result.length });
   } catch (e) {
