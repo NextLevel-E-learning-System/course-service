@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const niveisDefinidos = ['Básico', 'Intermediário', 'Avançado'] as const;
+export const niveisDefinidos = ['Iniciante', 'Intermediário', 'Avançado'] as const;
 
 export const createCourseSchema = z.object({
   codigo: z.string(),
