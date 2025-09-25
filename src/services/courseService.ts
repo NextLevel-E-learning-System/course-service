@@ -15,7 +15,15 @@ export async function getCourse(codigo:string){
 }
 
 export async function getAllCourses(){
-  return listAllCoursesWithStats();
+  try {
+    console.log('[courseService.getAllCourses] Starting...');
+    const result = await listAllCoursesWithStats();
+    console.log(`[courseService.getAllCourses] Successfully returned ${result.length} courses`);
+    return result;
+  } catch (error) {
+    console.error('[courseService.getAllCourses] Error:', error);
+    throw new HttpError(500, 'Erro ao buscar cursos');
+  }
 }
 
 export async function getCoursesByCategory(categoriaId: string){

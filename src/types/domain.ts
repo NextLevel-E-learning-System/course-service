@@ -50,7 +50,6 @@ export interface CatalogItem {
   pre_requisitos: string[]; 
   instrutor_id?: string | null;
   instrutor_nome?: string | null;
-  instrutor_sobrenome?: string | null;
   total_inscricoes?: number;
   total_conclusoes?: number;
   taxa_conclusao?: number;
@@ -61,7 +60,6 @@ export interface CourseWithStats extends Course {
   categoria_nome?: string | null;
   departamento_codigo?: string | null;
   instrutor_nome?: string | null;
-  instrutor_sobrenome?: string | null;
   total_inscricoes: number;
   total_conclusoes: number;
   taxa_conclusao: number;

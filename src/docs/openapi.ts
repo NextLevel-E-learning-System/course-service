@@ -56,8 +56,7 @@ export const openapiSpec = {
                           "pre_requisitos": { "type": "array", "items": { "type": "string" } },
                           "categoria_nome": { "type": "string" },
                           "departamento_codigo": { "type": "string" },
-                          "instrutor_nome": { "type": "string" },
-                          "instrutor_sobrenome": { "type": "string" },
+                          "instrutor_nome": { "type": "string", "description": "Nome completo do instrutor" },
                           "total_inscricoes": { "type": "integer", "description": "Número total de inscrições no curso" },
                           "total_conclusoes": { "type": "integer", "description": "Número total de conclusões do curso" },
                           "taxa_conclusao": { "type": "number", "format": "float", "description": "Taxa de conclusão em percentual (0-100)" },
@@ -158,7 +157,7 @@ export const openapiSpec = {
     "/courses/v1/{codigo}": { 
       "get": { 
         "summary": "Obter curso com estatísticas e módulos", 
-        "description": "Retorna dados completos do curso incluindo:\n• Informações básicas do curso\n• Dados do instrutor (nome e sobrenome)\n• Estatísticas de progresso (inscrições, conclusões, taxa de conclusão)\n• Lista completa de módulos ordenados\n• Pré-requisitos do curso", 
+        "description": "Retorna dados completos do curso incluindo:\n• Informações básicas do curso\n• Dados do instrutor (nome completo)\n• Estatísticas de progresso (inscrições, conclusões, taxa de conclusão)\n• Lista completa de módulos ordenados\n• Pré-requisitos do curso", 
         "tags": ["courses"], 
         "parameters": [{ "name": "codigo", "in": "path", "required": true, "schema": { "type": "string" } }], 
         "responses": { 
@@ -181,8 +180,7 @@ export const openapiSpec = {
                     "pre_requisitos": { "type": "array", "items": { "type": "string" } },
                     "categoria_nome": { "type": "string" },
                     "departamento_codigo": { "type": "string" },
-                    "instrutor_nome": { "type": "string" },
-                    "instrutor_sobrenome": { "type": "string" },
+                    "instrutor_nome": { "type": "string", "description": "Nome completo do instrutor" },
                     "total_inscricoes": { "type": "integer" },
                     "total_conclusoes": { "type": "integer" },
                     "taxa_conclusao": { "type": "number", "format": "float" },
