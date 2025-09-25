@@ -53,9 +53,16 @@ export const openapiSpec = {
                           "duracao_estimada": { "type": "integer" },
                           "xp_oferecido": { "type": "integer" },
                           "nivel_dificuldade": { "type": "string" },
+                          "pre_requisitos": { "type": "array", "items": { "type": "string" } },
                           "categoria_nome": { "type": "string" },
                           "departamento_codigo": { "type": "string" },
                           "instrutor_nome": { "type": "string" },
+                          "instrutor_sobrenome": { "type": "string" },
+                          "total_inscricoes": { "type": "integer", "description": "Número total de inscrições no curso" },
+                          "total_conclusoes": { "type": "integer", "description": "Número total de conclusões do curso" },
+                          "taxa_conclusao": { "type": "number", "format": "float", "description": "Taxa de conclusão em percentual (0-100)" },
+                          "media_conclusao": { "type": "number", "format": "float", "nullable": true, "description": "Média de progresso dos alunos que concluíram" },
+                          "total_modulos": { "type": "integer", "description": "Número total de módulos do curso" },
                           "criado_em": { "type": "string", "format": "date-time" },
                           "atualizado_em": { "type": "string", "format": "date-time" }
                         }
@@ -149,7 +156,64 @@ export const openapiSpec = {
       }
     },
     "/courses/v1/{codigo}": { 
-      "get": { "summary": "Obter curso", "tags": ["courses"], "parameters": [{ "name": "codigo", "in": "path", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "Dados do curso" }, "404": { "description": "Curso não encontrado" } } }, 
+      "get": { 
+        "summary": "Obter curso com estatísticas e módulos", 
+        "description": "Retorna dados completos do curso incluindo:\n• Informações básicas do curso\n• Dados do instrutor (nome e sobrenome)\n• Estatísticas de progresso (inscrições, conclusões, taxa de conclusão)\n• Lista completa de módulos ordenados\n• Pré-requisitos do curso", 
+        "tags": ["courses"], 
+        "parameters": [{ "name": "codigo", "in": "path", "required": true, "schema": { "type": "string" } }], 
+        "responses": { 
+          "200": { 
+            "description": "Dados completos do curso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "codigo": { "type": "string" },
+                    "titulo": { "type": "string" },
+                    "descricao": { "type": "string" },
+                    "categoria_id": { "type": "string" },
+                    "instrutor_id": { "type": "string" },
+                    "duracao_estimada": { "type": "integer" },
+                    "xp_oferecido": { "type": "integer" },
+                    "nivel_dificuldade": { "type": "string" },
+                    "ativo": { "type": "boolean" },
+                    "pre_requisitos": { "type": "array", "items": { "type": "string" } },
+                    "categoria_nome": { "type": "string" },
+                    "departamento_codigo": { "type": "string" },
+                    "instrutor_nome": { "type": "string" },
+                    "instrutor_sobrenome": { "type": "string" },
+                    "total_inscricoes": { "type": "integer" },
+                    "total_conclusoes": { "type": "integer" },
+                    "taxa_conclusao": { "type": "number", "format": "float" },
+                    "media_conclusao": { "type": "number", "format": "float", "nullable": true },
+                    "modulos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string", "format": "uuid" },
+                          "titulo": { "type": "string" },
+                          "conteudo": { "type": "string", "nullable": true },
+                          "ordem": { "type": "integer" },
+                          "obrigatorio": { "type": "boolean" },
+                          "xp": { "type": "integer" },
+                          "tipo_conteudo": { "type": "string", "nullable": true },
+                          "criado_em": { "type": "string", "format": "date-time" },
+                          "atualizado_em": { "type": "string", "format": "date-time" }
+                        }
+                      }
+                    },
+                    "criado_em": { "type": "string", "format": "date-time" },
+                    "atualizado_em": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          }, 
+          "404": { "description": "Curso não encontrado" } 
+        } 
+      }, 
       "patch": { "summary": "Atualizar curso", "description": "Atualiza curso com validação de regras de negócio:\n• ❌ Não permite edição se houver inscrições ativas\n• ✅ Validação de acesso controlada pelo API Gateway", "tags": ["courses"], "security": [{"bearerAuth":[]}], "parameters": [{ "name": "codigo", "in": "path", "required": true, "schema": { "type": "string" } }], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "titulo": { "type": "string" }, "descricao": { "type": "string" }, "categoria_id": { "type": "string" }, "duracao_estimada": { "type": "integer" }, "xp_oferecido": { "type": "integer" }, "nivel_dificuldade": { "type": "string", "enum": ["Iniciante", "Intermediário", "Avançado"] } } } } } }, "responses": { "200": { "description": "Curso atualizado" }, "403": { "description": "Não é possível editar curso com inscrições ativas" }, "404": { "description": "Curso não encontrado" } } },
       "delete": { "summary": "Deletar curso", "description": "Desativa o curso em vez de deletar fisicamente.\n\n**Segurança:** Validação de acesso controlada pelo API Gateway", "tags": ["courses"], "security": [{"bearerAuth":[]}], "parameters": [{ "name": "codigo", "in": "path", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "Curso desativado com sucesso", "content": { "application/json": { "schema": { "type": "object", "properties": { "inactivated": { "type": "boolean" } } } } } }, "401": { "description": "Token de autorização necessário" }, "404": { "description": "Curso não encontrado" } } }
     },
@@ -161,7 +225,38 @@ export const openapiSpec = {
     },
     "/courses/v1/{codigo}/modulos": { 
       "post": { "summary": "Adicionar módulo ao curso", "tags": ["modules"], "parameters": [{ "name": "codigo", "in": "path", "required": true, "schema": { "type": "string" } }], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["titulo"], "properties": { "titulo": { "type": "string" }, "conteudo": { "type": "string" }, "ordem": { "type": "integer" }, "obrigatorio": { "type": "boolean", "default": true }, "xp": { "type": "integer", "default": 0 }, "tipo_conteudo": { "type": "string" } } } } } }, "responses": { "201": { "description": "Módulo criado" }, "404": { "description": "Curso não encontrado" } } }, 
-      "get": { "summary": "Listar módulos do curso", "tags": ["modules"], "parameters": [{ "name": "codigo", "in": "path", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "Lista de módulos" }, "404": { "description": "Curso não encontrado" } } } 
+      "get": { 
+        "summary": "Listar módulos do curso", 
+        "tags": ["modules"], 
+        "parameters": [{ "name": "codigo", "in": "path", "required": true, "schema": { "type": "string" } }], 
+        "responses": { 
+          "200": { 
+            "description": "Lista completa de módulos ordenados por ordem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string", "format": "uuid" },
+                      "titulo": { "type": "string" },
+                      "conteudo": { "type": "string", "nullable": true, "description": "Conteúdo textual do módulo" },
+                      "ordem": { "type": "integer", "description": "Ordem de apresentação do módulo" },
+                      "obrigatorio": { "type": "boolean", "description": "Se o módulo é obrigatório para conclusão" },
+                      "xp": { "type": "integer", "description": "XP oferecido ao completar este módulo" },
+                      "tipo_conteudo": { "type": "string", "nullable": true, "description": "Tipo de conteúdo (vídeo, texto, quiz, etc.)" },
+                      "criado_em": { "type": "string", "format": "date-time" },
+                      "atualizado_em": { "type": "string", "format": "date-time" }
+                    }
+                  }
+                }
+              }
+            }
+          }, 
+          "404": { "description": "Curso não encontrado" } 
+        } 
+      } 
     },
     "/courses/v1/{codigo}/modulos/{moduloId}": {
       "patch": { "summary": "Atualizar módulo", "tags": ["modules"], "parameters": [{ "name": "codigo", "in": "path", "required": true, "schema": { "type": "string" } }, { "name": "moduloId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "titulo": { "type": "string" }, "conteudo": { "type": "string" }, "ordem": { "type": "integer" }, "obrigatorio": { "type": "boolean" }, "xp": { "type": "integer" }, "tipo_conteudo": { "type": "string" } } } } } }, "responses": { "200": { "description": "Módulo atualizado" }, "404": { "description": "Módulo não encontrado" } } }

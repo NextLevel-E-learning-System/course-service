@@ -95,3 +95,122 @@ export async function listCoursesByDepartment(departmentCode: string){
     return r.rows;
   });
 }
+
+export async function getCourseStats(cursoId: string) {
+  return withClient(async c => {
+    const r = await c.query(`
+      select 
+        count(i.id) as total_inscricoes,
+        count(case when i.status = 'CONCLUIDO' then 1 end) as total_conclusoes,
+        case 
+          when count(i.id) > 0 then 
+            round((count(case when i.status = 'CONCLUIDO' then 1 end) * 100.0 / count(i.id))::numeric, 2)
+          else 0 
+        end as taxa_conclusao,
+        avg(case when i.status = 'CONCLUIDO' then i.progresso_percentual end) as media_conclusao
+      from progress_service.inscricoes i
+      where i.curso_id = $1
+    `, [cursoId]);
+    return r.rows[0] || { 
+      total_inscricoes: 0, 
+      total_conclusoes: 0, 
+      taxa_conclusao: 0, 
+      media_conclusao: null 
+    };
+  });
+}
+
+export async function getCourseWithStats(codigo: string) {
+  return withClient(async c => {
+    const courseResult = await c.query(`
+      select c.codigo, c.titulo, c.descricao, c.categoria_id, c.instrutor_id, 
+             c.duracao_estimada, c.xp_oferecido, c.nivel_dificuldade, c.ativo, 
+             c.pre_requisitos, c.criado_em, c.atualizado_em,
+             cat.nome as categoria_nome,
+             cat.departamento_codigo,
+             f.nome as instrutor_nome,
+             f.sobrenome as instrutor_sobrenome
+      from course_service.cursos c
+      left join course_service.categorias cat on c.categoria_id = cat.codigo
+      left join user_service.instrutores i on c.instrutor_id = i.funcionario_id
+      left join user_service.funcionarios f on i.funcionario_id = f.id
+      where c.codigo = $1
+    `, [codigo]);
+
+    if (!courseResult.rows[0]) return null;
+
+    const course = courseResult.rows[0];
+
+    const stats = await getCourseStats(codigo);
+
+    const modulesResult = await c.query(`
+      select m.id, m.titulo, m.ordem, m.obrigatorio, m.xp_modulo as xp, 
+             m.conteudo, m.tipo_conteudo
+      from course_service.modulos m
+      where m.curso_id = $1
+      order by m.ordem asc
+    `, [codigo]);
+
+    return {
+      ...course,
+      ...stats,
+      modulos: modulesResult.rows
+    };
+  });
+}
+
+export async function listAllCoursesWithStats(){
+  return withClient(async c => {
+    const r = await c.query(`
+      select c.codigo, c.titulo, c.descricao, c.categoria_id, c.instrutor_id, 
+             c.duracao_estimada, c.xp_oferecido, c.nivel_dificuldade, c.ativo, 
+             c.pre_requisitos, c.criado_em, c.atualizado_em,
+             cat.nome as categoria_nome,
+             cat.departamento_codigo,
+             f.nome as instrutor_nome,
+             f.sobrenome as instrutor_sobrenome,
+             coalesce(stats.total_inscricoes, 0) as total_inscricoes,
+             coalesce(stats.total_conclusoes, 0) as total_conclusoes,
+             coalesce(stats.taxa_conclusao, 0) as taxa_conclusao,
+             stats.media_conclusao,
+             coalesce(mod_count.total_modulos, 0) as total_modulos
+      from course_service.cursos c
+      left join course_service.categorias cat on c.categoria_id = cat.codigo
+      left join user_service.instrutores i on c.instrutor_id = i.funcionario_id
+      left join user_service.funcionarios f on i.funcionario_id = f.id
+      left join lateral (
+        select 
+          count(ins.id) as total_inscricoes,
+          count(case when ins.status = 'CONCLUIDO' then 1 end) as total_conclusoes,
+          case 
+            when count(ins.id) > 0 then 
+              round((count(case when ins.status = 'CONCLUIDO' then 1 end) * 100.0 / count(ins.id))::numeric, 2)
+            else 0 
+          end as taxa_conclusao,
+          avg(case when ins.status = 'CONCLUIDO' then ins.progresso_percentual end) as media_conclusao
+        from progress_service.inscricoes ins
+        where ins.curso_id = c.codigo
+      ) stats on true
+      left join lateral (
+        select count(m.id) as total_modulos
+        from course_service.modulos m
+        where m.curso_id = c.codigo
+      ) mod_count on true
+      order by c.ativo desc, c.atualizado_em desc
+    `);
+    return r.rows;
+  });
+}
+
+export async function getCourseModules(cursoId: string) {
+  return withClient(async c => {
+    const r = await c.query(`
+      select m.id, m.titulo, m.ordem, m.obrigatorio, m.xp_modulo as xp, 
+             m.conteudo, m.tipo_conteudo, m.criado_em, m.atualizado_em
+      from course_service.modulos m
+      where m.curso_id = $1
+      order by m.ordem asc
+    `, [cursoId]);
+    return r.rows;
+  });
+}

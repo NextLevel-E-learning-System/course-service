@@ -8,7 +8,8 @@ import {
   duplicateCourse, 
   getAllCourses,
   getCoursesByCategory,
-  getCoursesByDepartment
+  getCoursesByDepartment,
+  getCourseModulesService
 } from '../services/courseService.js';
 import { HttpError } from '../utils/httpError.js';
 
@@ -142,6 +143,15 @@ export async function deleteCourseHandler(req: Request, res: Response, next: Nex
   try {
     await toggleCourseStatus(req.params.codigo, false);
     res.json({ inactivated: true });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getCourseModulesHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await getCourseModulesService(req.params.codigo);
+    res.json(result);
   } catch (e) {
     next(e);
   }

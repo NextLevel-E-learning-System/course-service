@@ -1,4 +1,4 @@
-import { insertCourse, findByCodigo, updateCourseDb, setCourseActiveDb, duplicateCourseDb, hasActiveEnrollments, listAllCourses, listCoursesByCategory, listCoursesByDepartment } from '../repositories/courseRepository.js';
+import { insertCourse, findByCodigo, updateCourseDb, setCourseActiveDb, duplicateCourseDb, hasActiveEnrollments, listCoursesByCategory, listCoursesByDepartment, getCourseWithStats, listAllCoursesWithStats, getCourseModules } from '../repositories/courseRepository.js';
 import { NivelDificuldade } from '../types/domain.js';
 interface CreateCourseInput { codigo:string; titulo:string; descricao?:string; categoria_id?:string; instrutor_id?:string; duracao_estimada?:number; xp_oferecido?:number; nivel_dificuldade?:NivelDificuldade; pre_requisitos?:string[] }
 interface UpdateCourseInput { titulo?:string; descricao?:string; categoria_id?:string; instrutor_id?:string; duracao_estimada?:number; xp_oferecido?:number; nivel_dificuldade?:NivelDificuldade; pre_requisitos?:string[] }
@@ -9,13 +9,13 @@ export async function createCourse(data:CreateCourseInput){
 }
 
 export async function getCourse(codigo:string){ 
-  const c = await findByCodigo(codigo); 
+  const c = await getCourseWithStats(codigo); 
   if(!c) throw new HttpError(404,'nao_encontrado'); 
   return c; 
 }
 
 export async function getAllCourses(){
-  return listAllCourses();
+  return listAllCoursesWithStats();
 }
 
 export async function getCoursesByCategory(categoriaId: string){
@@ -56,6 +56,13 @@ export async function duplicateCourse(codigo:string){
   if (!newCodigo) throw new HttpError(500, 'Erro ao duplicar curso');
   
   return { codigo_original: codigo, codigo_copia: newCodigo }; 
+}
+
+export async function getCourseModulesService(codigo: string) {
+  const existing = await findByCodigo(codigo);
+  if (!existing) throw new HttpError(404, 'nao_encontrado');
+  
+  return getCourseModules(codigo);
 }
 
 async function canEditCourse(codigo: string): Promise<boolean> {

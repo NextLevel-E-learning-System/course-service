@@ -8,7 +8,7 @@ export async function addModuleDb(codigo:string,data:ModuleInput){
   });
 }
 export async function listModulesDb(codigo:string){
-  return withClient(c=>c.query('select id,titulo,ordem,obrigatorio,xp_modulo as xp from course_service.modulos where curso_id=$1 order by ordem asc',[codigo]).then(r=>r.rows));
+  return withClient(c=>c.query('select id,titulo,conteudo,ordem,obrigatorio,xp_modulo as xp,tipo_conteudo,criado_em,atualizado_em from course_service.modulos where curso_id=$1 order by ordem asc',[codigo]).then(r=>r.rows));
 }
 export async function updateModuleDb(_codigo:string,moduloId:string,data:Partial<ModuleInput>){
   const fields:string[] = []; const values:unknown[] = []; let idx=1;

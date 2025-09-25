@@ -20,6 +20,9 @@ export interface Module {
   obrigatorio: boolean;
   xp: number;
   conteudo?: string | null;
+  tipo_conteudo?: string | null;
+  criado_em?: string;
+  atualizado_em?: string;
 }
 
 export interface EnrollmentProgressModule extends Omit<Module,'conteudo'> {
@@ -45,7 +48,26 @@ export interface CatalogItem {
   xp_oferecido?: number | null; 
   nivel_dificuldade?: NivelDificuldade | null; 
   pre_requisitos: string[]; 
-  idstrutor_id?: string | null;
+  instrutor_id?: string | null;
+  instrutor_nome?: string | null;
+  instrutor_sobrenome?: string | null;
+  total_inscricoes?: number;
+  total_conclusoes?: number;
+  taxa_conclusao?: number;
+  media_conclusao?: number | null;
+}
+
+export interface CourseWithStats extends Course {
+  categoria_nome?: string | null;
+  departamento_codigo?: string | null;
+  instrutor_nome?: string | null;
+  instrutor_sobrenome?: string | null;
+  total_inscricoes: number;
+  total_conclusoes: number;
+  taxa_conclusao: number;
+  media_conclusao?: number | null;
+  total_modulos?: number;
+  modulos?: Module[];
 }
 
 export interface EmployeeDashboard {
