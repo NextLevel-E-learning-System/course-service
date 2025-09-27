@@ -1,26 +1,34 @@
 import { Request, Response, NextFunction } from 'express';
 import { createCourseSchema, updateCourseSchema } from '../validation/courseSchemas.js';
-import { 
-  createCourse, 
-  getCourse, 
-  updateCourse, 
-  toggleCourseStatus, 
-  duplicateCourse, 
+import {
+  createCourse,
+  getCourse,
+  updateCourse,
+  toggleCourseStatus,
+  duplicateCourse,
   getAllCourses,
   getCoursesByCategory,
   getCoursesByDepartment,
   getCourseModulesService
 } from '../services/courseService.js';
-import { HttpError } from '../utils/httpError.js';
 
-interface FieldIssue { path: (string | number)[]; message: string }
+
 export async function createCourseHandler(req: Request, res: Response, next: NextFunction) {
   const parsed = createCourseSchema.safeParse(req.body);
-  if (!parsed.success) return next(new HttpError(400, 'validation_error', parsed.error.issues));
-  
+  if (!parsed.success) {
+    return res.status(400).json({
+      erro: 'dados_invalidos',
+      mensagem: 'Dados do curso inválidos',
+      detalhes: parsed.error.issues
+    });
+  }
+
   try {
-    const result = await createCourse(parsed.data);
-    res.status(201).json(result);
+    const curso = await createCourse(parsed.data);
+    if (!curso) {
+      return res.status(409).json({ erro: 'codigo_duplicado', mensagem: 'Já existe um curso com este código' });
+    }
+    res.status(201).json({ curso, mensagem: 'Curso criado com sucesso' });
   } catch (e) {
     next(e);
   }
@@ -28,8 +36,9 @@ export async function createCourseHandler(req: Request, res: Response, next: Nex
 
 export async function getCourseHandler(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await getCourse(req.params.codigo);
-    res.json(result);
+    const curso = await getCourse(req.params.codigo);
+    if (!curso) return res.status(404).json({ erro: 'curso_nao_encontrado', mensagem: 'Curso não encontrado' });
+    res.json({ curso, mensagem: 'Curso obtido com sucesso' });
   } catch (e) {
     next(e);
   }
@@ -82,7 +91,7 @@ export async function getAllCoursesHandler(req: Request, res: Response, next: Ne
       result = result.filter(course => course.ativo === filters.ativo);
     }
     
-    res.json({ items: result, total: result.length });
+    res.json({ items: result, total: result.length, mensagem: 'Cursos listados com sucesso' });
   } catch (e) {
     next(e);
   }
@@ -92,7 +101,7 @@ export async function getCoursesByCategoryHandler(req: Request, res: Response, n
   try {
     const categoriaId = req.params.categoriaId;
     const result = await getCoursesByCategory(categoriaId);
-    res.json({ items: result, total: result.length });
+    res.json({ items: result, total: result.length, mensagem: 'Cursos da categoria listados com sucesso' });
   } catch (e) {
     next(e);
   }
@@ -102,7 +111,7 @@ export async function getCoursesByDepartmentHandler(req: Request, res: Response,
   try {
     const departmentCode = req.params.departmentCode;
     const result = await getCoursesByDepartment(departmentCode);
-    res.json({ items: result, total: result.length });
+    res.json({ items: result, total: result.length, mensagem: 'Cursos do departamento listados com sucesso' });
   } catch (e) {
     next(e);
   }
@@ -110,11 +119,19 @@ export async function getCoursesByDepartmentHandler(req: Request, res: Response,
 
 export async function updateCourseHandler(req: Request, res: Response, next: NextFunction) {
   const parsed = updateCourseSchema.safeParse(req.body);
-  if (!parsed.success) return next(new HttpError(400, 'validation_error', parsed.error.issues));
-  
+  if (!parsed.success) {
+    return res.status(400).json({ erro: 'dados_invalidos', mensagem: 'Dados para atualização inválidos', detalhes: parsed.error.issues });
+  }
+
   try {
     const result = await updateCourse(req.params.codigo, parsed.data);
-    res.json(result);
+    if (!result) {
+      return res.status(404).json({ erro: 'curso_nao_encontrado', mensagem: 'Curso não encontrado' });
+    }
+    if ('error' in result) {
+      return res.status(403).json({ erro: result.error, mensagem: 'Não é possível editar curso com inscrições ativas' });
+    }
+    res.json({ curso: result, mensagem: 'Curso atualizado com sucesso' });
   } catch (e) {
     next(e);
   }
@@ -122,10 +139,15 @@ export async function updateCourseHandler(req: Request, res: Response, next: Nex
 export async function setCourseActiveHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const { active } = req.body as { active?: unknown };
-    if (typeof active !== 'boolean') return next(new HttpError(400, 'validation_error', [{ path: ['active'], message: 'must be boolean' } as FieldIssue]));
-    
-    const result = await toggleCourseStatus(req.params.codigo, active);
-    res.json(result);
+    if (typeof active !== 'boolean') {
+      return res.status(400).json({ erro: 'dados_invalidos', mensagem: 'Campo active deve ser boolean', detalhes: [{ path: ['active'], message: 'must be boolean' }] });
+    }
+
+    const curso = await toggleCourseStatus(req.params.codigo, active);
+    if (!curso) {
+      return res.status(404).json({ erro: 'curso_nao_encontrado', mensagem: 'Curso não encontrado' });
+    }
+    res.json({ curso, mensagem: `Status do curso atualizado para ${active ? 'ativo' : 'inativo'}` });
   } catch (e) {
     next(e);
   }
@@ -133,7 +155,13 @@ export async function setCourseActiveHandler(req: Request, res: Response, next: 
 export async function duplicateCourseHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await duplicateCourse(req.params.codigo);
-    res.status(201).json(result);
+    if (!result) {
+      return res.status(404).json({ erro: 'curso_nao_encontrado', mensagem: 'Curso não encontrado' });
+    }
+    if ('error' in result) {
+      return res.status(500).json({ erro: result.error, mensagem: 'Erro interno ao duplicar curso' });
+    }
+    res.status(201).json({ duplicacao: result, mensagem: 'Curso duplicado com sucesso' });
   } catch (e) {
     next(e);
   }
@@ -142,7 +170,7 @@ export async function duplicateCourseHandler(req: Request, res: Response, next: 
 export async function deleteCourseHandler(req: Request, res: Response, next: NextFunction) {
   try {
     await toggleCourseStatus(req.params.codigo, false);
-    res.json({ inactivated: true });
+    res.json({ inactivated: true, mensagem: 'Curso desativado com sucesso' });
   } catch (e) {
     next(e);
   }
@@ -150,8 +178,11 @@ export async function deleteCourseHandler(req: Request, res: Response, next: Nex
 
 export async function getCourseModulesHandler(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await getCourseModulesService(req.params.codigo);
-    res.json(result);
+    const modulos = await getCourseModulesService(req.params.codigo);
+    if (!modulos) {
+      return res.status(404).json({ erro: 'curso_nao_encontrado', mensagem: 'Curso não encontrado' });
+    }
+    res.json({ items: modulos, mensagem: 'Módulos do curso listados com sucesso' });
   } catch (e) {
     next(e);
   }

@@ -1,6 +1,5 @@
 import { insertMaterial, listMaterials } from '../repositories/materialRepository.js';
 import { uploadObject, getPresignedUrl } from '../utils/storageClient.js';
-import { HttpError } from '../utils/httpError.js';
 
 const allowed = new Set(['pdf','video','presentation','mp4','ppt','pptx','doc','docx']);
 
@@ -11,7 +10,7 @@ interface AddMaterialInput {
 
 export async function addMaterial(moduloId: string, data: AddMaterialInput) {
   if (!data.base64) {
-    throw new HttpError(400, 'base64_obrigatorio', 'Campo base64 é obrigatório para upload');
+    return { error: 'base64_obrigatorio' };
   }
 
   // Detectar tipo automaticamente pela extensão
@@ -19,7 +18,7 @@ export async function addMaterial(moduloId: string, data: AddMaterialInput) {
   const tipo_arquivo = detectarTipo(extensao);
   
   if (!allowed.has(extensao)) {
-    throw new HttpError(400, 'tipo_invalido', `Tipo de arquivo não suportado: ${extensao}. Tipos aceitos: pdf, video (mp4), presentation (ppt, pptx), documentos (doc, docx)`);
+    return { error: 'tipo_invalido' };
   }
 
   // Converter base64 e calcular tamanho automaticamente
@@ -40,20 +39,14 @@ export async function addMaterial(moduloId: string, data: AddMaterialInput) {
   });
 
   // Salvar no banco com dados automáticos
-  await insertMaterial({ 
+  const inserted = await insertMaterial({ 
     modulo_id: moduloId, 
     nome_arquivo: data.nome_arquivo, 
     tipo_arquivo, 
     storage_key, 
     tamanho 
   });
-
-  return { 
-    created: true, 
-    storage_key,
-    tamanho,
-    tipo_arquivo
-  };
+  return { id: inserted.id, nome_arquivo: data.nome_arquivo, tipo_arquivo, storage_key, tamanho };
 }
 
 export async function getMaterials(moduloId: string) {

@@ -1,7 +1,10 @@
 import { withClient } from '../db.js';
 
 export async function insertMaterial(d:{ modulo_id:string; nome_arquivo:string; tipo_arquivo:string; storage_key:string; tamanho?:number }){
-  await withClient(c=>c.query('insert into course_service.materiais (modulo_id,nome_arquivo,tipo_arquivo,storage_key,tamanho) values ($1,$2,$3,$4,$5)', [d.modulo_id,d.nome_arquivo,d.tipo_arquivo,d.storage_key,d.tamanho||null]));
+  return withClient(async c => {
+    const r = await c.query('insert into course_service.materiais (modulo_id,nome_arquivo,tipo_arquivo,storage_key,tamanho) values ($1,$2,$3,$4,$5) returning id',[d.modulo_id,d.nome_arquivo,d.tipo_arquivo,d.storage_key,d.tamanho||null]);
+    return r.rows[0];
+  });
 }
 
 export async function listMaterials(moduloId:string){

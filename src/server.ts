@@ -3,7 +3,6 @@ import cors from 'cors';
 import { loadOpenApi } from './config/openapi.js';
 import { logger } from './config/logger.js';
 import { courseRouter } from './routes/courseRoutes.js';
-import { errorHandler } from './middleware/errorHandler.js';
 
 export function createServer() {
   const app = express();
@@ -22,6 +21,5 @@ export function createServer() {
     }
   });
   app.use('/courses/v1', courseRouter);
-  app.use(errorHandler);
   return app;
 }

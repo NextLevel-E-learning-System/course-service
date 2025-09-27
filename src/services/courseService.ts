@@ -2,28 +2,28 @@ import { insertCourse, findByCodigo, updateCourseDb, setCourseActiveDb, duplicat
 import { NivelDificuldade } from '../types/domain.js';
 interface CreateCourseInput { codigo:string; titulo:string; descricao?:string; categoria_id?:string; instrutor_id?:string; duracao_estimada?:number; xp_oferecido?:number; nivel_dificuldade?:NivelDificuldade; pre_requisitos?:string[] }
 interface UpdateCourseInput { titulo?:string; descricao?:string; categoria_id?:string; instrutor_id?:string; duracao_estimada?:number; xp_oferecido?:number; nivel_dificuldade?:NivelDificuldade; pre_requisitos?:string[] }
-import { HttpError } from '../utils/httpError.js';
 
 export async function createCourse(data:CreateCourseInput){
-  try { await insertCourse(data); return { codigo: data.codigo }; } catch (err:unknown){ if (typeof err === 'object' && err && (err as { code?:string }).code === '23505') throw new HttpError(409,'duplicado'); throw err; }
+  try {
+    await insertCourse(data);
+    return { codigo: data.codigo };
+  } catch (err:unknown){
+    if (typeof err === 'object' && err && (err as { code?:string }).code === '23505') {
+      return null; // duplicação - controller decide como responder
+    }
+    throw err;
+  }
 }
 
 export async function getCourse(codigo:string){ 
   const c = await getCourseWithStats(codigo); 
-  if(!c) throw new HttpError(404,'nao_encontrado'); 
-  return c; 
+  return c; // pode retornar null, controller decide como tratar
 }
 
 export async function getAllCourses(){
-  try {
-    console.log('[courseService.getAllCourses] Starting...');
-    const result = await listAllCoursesWithStats();
-    console.log(`[courseService.getAllCourses] Successfully returned ${result.length} courses`);
-    return result;
-  } catch (error) {
-    console.error('[courseService.getAllCourses] Error:', error);
-    throw new HttpError(500, 'Erro ao buscar cursos');
-  }
+  // logs podem permanecer simples sem alterar contrato
+  const result = await listAllCoursesWithStats();
+  return result;
 }
 
 export async function getCoursesByCategory(categoriaId: string){
@@ -34,42 +34,35 @@ export async function getCoursesByDepartment(departmentCode: string){
   return listCoursesByDepartment(departmentCode);
 }
 
-export async function updateCourse(codigo:string, data:UpdateCourseInput){ 
-  const existing = await findByCodigo(codigo); 
-  if(!existing) throw new HttpError(404,'nao_encontrado'); 
-  
-  // Verificar permissões para edição
+export async function updateCourse(codigo:string, data:UpdateCourseInput){
+  const existing = await findByCodigo(codigo);
+  if(!existing) return null; // não encontrado
+
   const canEdit = await canEditCourse(codigo);
-  if (!canEdit) {
-    throw new HttpError(403, 'Não é possível editar curso com inscrições ativas.');
-  }
-  
-  await updateCourseDb(codigo,data); 
-  return { updated:true }; 
+  if (!canEdit) return { error: 'curso_com_inscricoes_ativas' }; // não pode editar
+
+  await updateCourseDb(codigo,data);
+  return await findByCodigo(codigo); // retorna curso atualizado
 }
 
-export async function toggleCourseStatus(codigo:string, active:boolean){ 
-  const existing = await findByCodigo(codigo); 
-  if(!existing) throw new HttpError(404,'nao_encontrado'); 
-  
-  await setCourseActiveDb(codigo, active); 
-  return { codigo, ativo: active }; 
+export async function toggleCourseStatus(codigo:string, active:boolean){
+  const existing = await findByCodigo(codigo);
+  if(!existing) return null; // não encontrado
+  await setCourseActiveDb(codigo, active);
+  return await findByCodigo(codigo);
 }
 
-export async function duplicateCourse(codigo:string){ 
-  const existing = await findByCodigo(codigo); 
-  if(!existing) throw new HttpError(404,'nao_encontrado'); 
-  
-  const newCodigo = await duplicateCourseDb(codigo); 
-  if (!newCodigo) throw new HttpError(500, 'Erro ao duplicar curso');
-  
-  return { codigo_original: codigo, codigo_copia: newCodigo }; 
+export async function duplicateCourse(codigo:string){
+  const existing = await findByCodigo(codigo);
+  if(!existing) return null; // não encontrado
+  const newCodigo = await duplicateCourseDb(codigo);
+  if (!newCodigo) return { error: 'erro_duplicar_curso' }; // falha na duplicação
+  return { codigo_original: codigo, codigo_copia: newCodigo };
 }
 
 export async function getCourseModulesService(codigo: string) {
   const existing = await findByCodigo(codigo);
-  if (!existing) throw new HttpError(404, 'nao_encontrado');
-  
+  if (!existing) return null; // não encontrado
   return getCourseModules(codigo);
 }
 
