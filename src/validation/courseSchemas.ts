@@ -8,8 +8,8 @@ export const createCourseSchema = z.object({
   descricao: z.string().optional(),
   categoria_id: z.string().optional(),
   instrutor_id: z.string().uuid().optional(),
-  duracao_estimada: z.number().int().positive().optional(),
-  xp_oferecido: z.number().int().positive().optional(),
+  duracao_estimada: z.number().int().min(0).optional(),
+  xp_oferecido: z.number().int().min(0).optional(),
   nivel_dificuldade: z.enum(niveisDefinidos).optional(),
   pre_requisitos: z.array(z.string()).optional()
 });
@@ -19,8 +19,8 @@ export const updateCourseSchema = z.object({
   descricao: z.string().optional(),
   categoria_id: z.string().optional(),
   instrutor_id: z.string().uuid().optional(),
-  duracao_estimada: z.number().int().positive().optional(),
-  xp_oferecido: z.number().int().positive().optional(),
+  duracao_estimada: z.number().int().min(0).optional(),
+  xp_oferecido: z.number().int().min(0).optional(),
   nivel_dificuldade: z.enum(niveisDefinidos).optional(),
   pre_requisitos: z.array(z.string()).optional()
 });
