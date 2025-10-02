@@ -413,7 +413,7 @@ export const openapiSpec = {
       "get": { 
         "summary": "Listar todos os cursos", 
         "description": "Endpoint unificado que retorna cursos com filtros opcionais:\n• Retorna TODOS os cursos (ativos e inativos) por padrão\n• Suporte a filtros de busca (q, categoria, instrutor, etc.)\n• Filtragem por status ativo opcional via parâmetro\n• Filtragem por departamento e categoria\n\n**⚠️ Validação de acesso:** Feita no API Gateway, não no service\n**✅ Filtros disponíveis:** Todos funcionam independente de role\n**🔒 Segurança:** Role-based access controlado pela infraestrutura",
-        "tags": ["courses", "catalog"], 
+        "tags": ["courses"], 
         "security": [{"bearerAuth":[]}],
         "parameters": [
           { "name": "q", "in": "query", "schema": { "type": "string" }, "description": "Busca por título ou descrição" },
