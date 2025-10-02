@@ -5,6 +5,24 @@ export const openapiSpec = {
     "version": "2.0.0",
     "description": "API completa para gestão de cursos, módulos e materiais com padrão de resposta unificado: sucesso sempre inclui mensagem, erros seguem formato { erro, mensagem }"
   },
+  "tags": [
+    {
+      "name": "Course - Cursos",
+      "description": "Gestão de Cursos - CRUD completo de cursos"
+    },
+    {
+      "name": "Course - Categorias", 
+      "description": "Gestão de Categorias - CRUD de categorias de cursos"
+    },
+    {
+      "name": "Course - Módulos",
+      "description": "Gestão de Módulos - CRUD de módulos dos cursos"
+    },
+    {
+      "name": "Course - Materiais",
+      "description": "Gestão de Materiais - CRUD de materiais dos módulos"
+    }
+  ],
   "components": {
     "securitySchemes": {
       "bearerAuth": {
@@ -202,7 +220,7 @@ export const openapiSpec = {
     "/courses/v1/categorias": { 
       "get": { 
         "summary": "Listar categorias", 
-        "tags": ["categorias"], 
+        "tags": ["Course - Categorias"], 
         "responses": { 
           "200": { 
             "description": "Lista de categorias", 
@@ -217,7 +235,7 @@ export const openapiSpec = {
       "post": { 
         "summary": "Criar categoria", 
         "description": "Cria nova categoria de curso.\n\n**Segurança:** Validação de acesso controlada pelo API Gateway", 
-        "tags": ["categorias"], 
+        "tags": ["Course - Categorias"], 
         "security": [{"bearerAuth":[]}], 
         "requestBody": { 
           "required": true, 
@@ -279,7 +297,7 @@ export const openapiSpec = {
     "/courses/v1/categorias/{codigo}": {
       "get": { 
         "summary": "Obter categoria", 
-        "tags": ["categorias"], 
+        "tags": ["Course - Categorias"], 
         "parameters": [{ "name": "codigo", "in": "path", "required": true, "schema": { "type": "string" } }], 
         "responses": { 
           "200": { 
@@ -307,7 +325,7 @@ export const openapiSpec = {
       "put": { 
         "summary": "Atualizar categoria", 
         "description": "Atualiza dados de uma categoria existente.\n\n**Segurança:** Validação de acesso controlada pelo API Gateway", 
-        "tags": ["categorias"], 
+        "tags": ["Course - Categorias"], 
         "security": [{"bearerAuth":[]}], 
         "parameters": [{ "name": "codigo", "in": "path", "required": true, "schema": { "type": "string" } }], 
         "requestBody": { 
@@ -363,7 +381,7 @@ export const openapiSpec = {
       "delete": { 
         "summary": "Excluir categoria", 
         "description": "Exclui uma categoria se não houver cursos associados.\n\n**Segurança:** Validação de acesso controlada pelo API Gateway", 
-        "tags": ["categorias"], 
+        "tags": ["Course - Categorias"], 
         "security": [{"bearerAuth":[]}], 
         "parameters": [{ "name": "codigo", "in": "path", "required": true, "schema": { "type": "string" } }], 
         "responses": { 
