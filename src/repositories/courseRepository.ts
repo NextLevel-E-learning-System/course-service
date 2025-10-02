@@ -33,9 +33,6 @@ export async function duplicateCourseDb(codigo:string){
     return newCodigo;
   });
 }
-export async function hasActiveEnrollments(codigo:string){
-  return withClient(c=>c.query('select 1 from progress_service.inscricoes where curso_id=$1 and status=$2 limit 1',[codigo,'EM_ANDAMENTO']).then(r=>!!r.rows[0]));
-}
 
 export async function listAllCourses(){
   return withClient(async c => {
