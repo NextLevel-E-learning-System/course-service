@@ -21,3 +21,19 @@ export async function updateModuleDb(_codigo:string,moduloId:string,data:Partial
   values.push(moduloId);
   await withClient(c=>c.query(`update course_service.modulos set ${fields.join(', ')} where id=$${idx}` , values));
 }
+
+export async function deleteModuleDb(moduloId: string) {
+  return withClient(async c => {
+    // Primeiro, deletar todos os materiais do módulo
+    await c.query('delete from course_service.materiais where modulo_id = $1', [moduloId]);
+    
+    // Depois, deletar o módulo
+    const result = await c.query('delete from course_service.modulos where id = $1 returning curso_id', [moduloId]);
+    
+    if (result.rows.length === 0) {
+      throw new Error('Módulo não encontrado');
+    }
+    
+    return result.rows[0].curso_id;
+  });
+}

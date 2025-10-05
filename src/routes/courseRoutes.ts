@@ -10,7 +10,7 @@ import {
   duplicateCourseHandler,
   deleteCourseHandler,
 } from '../controllers/courseController.js';
-import { addModuleHandler, listModulesHandler, updateModuleHandler } from '../controllers/moduleController.js';
+import { addModuleHandler, listModulesHandler, updateModuleHandler, deleteModuleHandler } from '../controllers/moduleController.js';
 import { listCategoriesHandler, getCategoryHandler, createCategoryHandler, updateCategoryHandler, deleteCategoryHandler } from '../controllers/categoryController.js';
 import { addMaterialHandler, listMaterialsHandler, deleteMaterialHandler } from '../controllers/materialController.js';
 
@@ -40,6 +40,7 @@ courseRouter.delete('/:codigo', deleteCourseHandler);
 courseRouter.post('/:codigo/modulos', addModuleHandler);
 courseRouter.get('/:codigo/modulos', listModulesHandler);
 courseRouter.patch('/:codigo/modulos/:moduloId', updateModuleHandler);
+courseRouter.delete('/modulos/:moduloId', deleteModuleHandler);
 
 // Rotas de materiais
 courseRouter.post('/modulos/:moduloId/materiais', addMaterialHandler);

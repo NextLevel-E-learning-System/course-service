@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { addModule, listModules, updateModule } from '../services/moduleService.js';
+import { addModule, listModules, updateModule, deleteModule } from '../services/moduleService.js';
 
 export async function addModuleHandler(req:Request,res:Response,next:NextFunction){
   try {
@@ -20,5 +20,12 @@ export async function updateModuleHandler(req:Request,res:Response,next:NextFunc
     const modulo = await updateModule(req.params.codigo, req.params.moduloId, req.body);
     if (!modulo) return res.status(404).json({ erro: 'modulo_nao_encontrado', mensagem: 'Módulo não encontrado' });
     res.json({ modulo, mensagem: 'Módulo atualizado com sucesso' });
+  } catch(e){ next(e); }
+}
+
+export async function deleteModuleHandler(req:Request,res:Response,next:NextFunction){
+  try {
+    await deleteModule(req.params.moduloId);
+    res.json({ mensagem: 'Módulo deletado com sucesso' });
   } catch(e){ next(e); }
 }
