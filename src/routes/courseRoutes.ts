@@ -12,7 +12,7 @@ import {
 } from '../controllers/courseController.js';
 import { addModuleHandler, listModulesHandler, updateModuleHandler } from '../controllers/moduleController.js';
 import { listCategoriesHandler, getCategoryHandler, createCategoryHandler, updateCategoryHandler, deleteCategoryHandler } from '../controllers/categoryController.js';
-import { addMaterialHandler, listMaterialsHandler } from '../controllers/materialController.js';
+import { addMaterialHandler, listMaterialsHandler, deleteMaterialHandler } from '../controllers/materialController.js';
 
 export const courseRouter = Router();
 
@@ -44,3 +44,4 @@ courseRouter.patch('/:codigo/modulos/:moduloId', updateModuleHandler);
 // Rotas de materiais
 courseRouter.post('/modulos/:moduloId/materiais', addMaterialHandler);
 courseRouter.get('/modulos/:moduloId/materiais', listMaterialsHandler);
+courseRouter.delete('/materiais/:materialId', deleteMaterialHandler);

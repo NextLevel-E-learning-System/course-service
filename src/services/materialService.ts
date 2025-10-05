@@ -1,5 +1,5 @@
-import { insertMaterial, listMaterials } from '../repositories/materialRepository.js';
-import { uploadObject, getPresignedUrl } from '../utils/storageClient.js';
+import { insertMaterial, listMaterials, deleteMaterial } from '../repositories/materialRepository.js';
+import { uploadObject, getPresignedUrl, deleteObject } from '../utils/storageClient.js';
 
 const allowed = new Set(['pdf','video','presentation','mp4','ppt','pptx','doc','docx']);
 
@@ -25,12 +25,12 @@ export async function addMaterial(moduloId: string, data: AddMaterialInput) {
   const buffer = Buffer.from(data.base64, 'base64');
   const tamanho = buffer.length;
 
-  // Gerar storage_key automaticamente
+  // Gerar storage_key seguindo a estrutura: courses-materials/moduloId/timestamp-filename
   const timestamp = Date.now();
-  const storage_key = `materials/${moduloId}/${timestamp}-${data.nome_arquivo}`;
+  const storage_key = `courses-materials/${moduloId}/${timestamp}-${data.nome_arquivo}`;
 
   // Upload para storage
-  const bucket = process.env.STORAGE_BUCKET_MATERIAIS || 'courses-materials';
+  const bucket = process.env.STORAGE_BUCKET_MATERIAIS || 'nextlevel-elearning-prod';
   await uploadObject({ 
     bucket, 
     key: storage_key, 
@@ -51,15 +51,32 @@ export async function addMaterial(moduloId: string, data: AddMaterialInput) {
 
 export async function getMaterials(moduloId: string) {
   const list = await listMaterials(moduloId);
-  const bucket = process.env.STORAGE_BUCKET_MATERIAIS || 'courses-materials';
+  const bucket = process.env.STORAGE_BUCKET_MATERIAIS || 'nextlevel-elearning-prod';
   
   return Promise.all(list.map(async m => {
     if (m.storage_key) {
       const signed = await getPresignedUrl(bucket, m.storage_key, 300);
-      return { ...m, download_url: signed };
+      return { ...m, url_download: signed };
     }
     return m;
   }));
+}
+
+export async function removeMaterial(materialId: string) {
+  const bucket = process.env.STORAGE_BUCKET_MATERIAIS || 'nextlevel-elearning-prod';
+  
+  try {
+    // Deleta do banco e pega a storage_key
+    const storage_key = await deleteMaterial(materialId);
+    
+    // Deleta do storage
+    await deleteObject(bucket, storage_key);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Erro ao deletar material:', error);
+    throw error;
+  }
 }
 
 function detectarTipo(extensao: string): string {

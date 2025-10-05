@@ -5,15 +5,15 @@ import * as path from 'path';
 
 // Configuração de storage flexível por ambiente
 const storageType = process.env.STORAGE_TYPE || 'local'; // 'local' | 's3' | 'minio'
-const endpoint = process.env.STORAGE_ENDPOINT || 'http://minio:9000';
-const region = process.env.STORAGE_REGION || 'us-east-1';
+const endpoint = process.env.STORAGE_ENDPOINT; // undefined para AWS S3 oficial
+const region = process.env.STORAGE_REGION || 'sa-east-1';
 const accessKeyId = process.env.STORAGE_ACCESS_KEY || 'minio';
 const secretAccessKey = process.env.STORAGE_SECRET_KEY || 'minio123';
 const localStoragePath = process.env.LOCAL_STORAGE_PATH || './storage';
 const publicUrlBase = process.env.PUBLIC_URL_BASE || 'http://localhost:3333/storage';
 const envPrefix = process.env.STORAGE_ENV_PREFIX || 'dev'; // dev | staging | prod
 
-const forcePathStyle = storageType !== 's3'; // AWS S3 usa virtual-hosted style
+const forcePathStyle = storageType === 'minio'; // Apenas MinIO usa path-style
 
 // Função para adicionar prefixo de ambiente nas storage keys
 function addEnvPrefix(key: string): string {
@@ -22,7 +22,7 @@ function addEnvPrefix(key: string): string {
 
 export const s3 = storageType !== 'local' ? new S3Client({ 
   region, 
-  endpoint: storageType === 's3' ? undefined : endpoint,
+  endpoint: storageType === 'minio' ? endpoint : undefined, // AWS S3 não precisa de endpoint customizado
   forcePathStyle, 
   credentials: { accessKeyId, secretAccessKey } 
 }) : null;
