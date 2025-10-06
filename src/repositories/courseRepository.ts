@@ -165,11 +165,14 @@ export async function getCourseWithStats(codigo: string) {
 
       console.log(`[getCourseWithStats] Successfully fetched course ${codigo} with ${modulesResult.rows.length} modules`);
 
-      return {
-        ...course,
-        ...stats,
-        modulos: modulesResult.rows
-      };
+        // Soma do xp dos módulos
+        const xpTotal = modulesResult.rows.reduce((acc, mod) => acc + (mod.xp || 0), 0);
+        return {
+          ...course,
+          ...stats,
+          xp_oferecido: xpTotal,
+          modulos: modulesResult.rows
+        };
     } catch (error) {
       console.error(`[getCourseWithStats] Error fetching course ${codigo}:`, error);
       throw error;
@@ -262,13 +265,17 @@ export async function listAllCoursesWithStats(){
             
             // Buscar contagem de módulos
             let moduleCount = 0;
+              // Buscar soma do xp dos módulos
+              let xpTotal = 0;
             try {
               const modulesResult = await c.query(`
                 select count(m.id) as total_modulos
+                        , coalesce(sum(m.xp_modulo),0) as xp_total
                 from course_service.modulos m
                 where m.curso_id = $1
               `, [course.codigo]);
-              moduleCount = modulesResult.rows[0]?.total_modulos || 0;
+                moduleCount = modulesResult.rows[0]?.total_modulos || 0;
+                xpTotal = modulesResult.rows[0]?.xp_total || 0;
             } catch (moduleError) {
               console.warn(`[listAllCoursesWithStats] Error counting modules for course ${course.codigo}:`, moduleError);
             }
@@ -280,16 +287,17 @@ export async function listAllCoursesWithStats(){
               media_conclusao: null
             };
             
-            return {
-              ...course,
-              ...categoryData,
-              ...instructorData,
-              total_inscricoes: Number(stats.total_inscricoes) || 0,
-              total_conclusoes: Number(stats.total_conclusoes) || 0,
-              taxa_conclusao: Number(stats.taxa_conclusao) || 0,
-              media_conclusao: stats.media_conclusao ? Number(stats.media_conclusao) : null,
-              total_modulos: Number(moduleCount) || 0
-            };
+              return {
+                ...course,
+                ...categoryData,
+                ...instructorData,
+                total_inscricoes: Number(stats.total_inscricoes) || 0,
+                total_conclusoes: Number(stats.total_conclusoes) || 0,
+                taxa_conclusao: Number(stats.taxa_conclusao) || 0,
+                media_conclusao: stats.media_conclusao ? Number(stats.media_conclusao) : null,
+                total_modulos: Number(moduleCount) || 0,
+                xp_oferecido: Number(xpTotal) || 0
+              };
           } catch (error) {
             console.error(`[listAllCoursesWithStats] Error processing course ${course.codigo}:`, error);
             // Retornar curso sem estatísticas em caso de erro
