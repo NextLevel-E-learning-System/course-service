@@ -29,7 +29,8 @@ export const s3 = storageType !== 'local' ? new S3Client({
 
 export async function uploadObject(params: { bucket: string; key: string; body: Buffer | Uint8Array | string; contentType?: string }) {
   const { bucket, key, body, contentType } = params;
-  const prefixedKey = addEnvPrefix(key);
+  // Se a key já tem o prefixo de ambiente, não adiciona novamente
+  const prefixedKey = key.startsWith(`${envPrefix}/`) ? key : addEnvPrefix(key);
   
   if (storageType === 'local') {
     // Storage local para desenvolvimento
@@ -48,8 +49,9 @@ export async function uploadObject(params: { bucket: string; key: string; body: 
 }
 
 export async function getPresignedUrl(bucket: string, key: string, expiresSeconds = 300) {
-  // Se a key já tem prefixo, usa como está, senão adiciona
-  const prefixedKey = key.includes('/') && key.split('/')[0] === envPrefix ? key : addEnvPrefix(key);
+  // A key que vem do banco já deve incluir o prefixo de ambiente
+  // Adiciona o prefixo apenas se ele não estiver presente
+  const prefixedKey = key.startsWith(`${envPrefix}/`) ? key : addEnvPrefix(key);
   
   if (storageType === 'local') {
     // Para local, retorna URL direta (sem expiração real)

@@ -25,9 +25,10 @@ export async function addMaterial(moduloId: string, data: AddMaterialInput) {
   const buffer = Buffer.from(data.base64, 'base64');
   const tamanho = buffer.length;
 
-  // Gerar storage_key seguindo a estrutura: courses-materials/moduloId/timestamp-filename
+  // Gerar storage_key seguindo a estrutura: {env}/courses-materials/moduloId/timestamp-filename
   const timestamp = Date.now();
-  const storage_key = `courses-materials/${moduloId}/${timestamp}-${data.nome_arquivo}`;
+  const envPrefix = process.env.STORAGE_ENV_PREFIX || 'dev';
+  const storage_key = `${envPrefix}/courses-materials/${moduloId}/${timestamp}-${data.nome_arquivo}`;
 
   // Upload para storage
   const bucket = process.env.STORAGE_BUCKET_MATERIAIS || 'nextlevel-elearning-prod';
