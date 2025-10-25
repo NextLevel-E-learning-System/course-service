@@ -11,7 +11,8 @@ export const createCourseSchema = z.object({
   duracao_estimada: z.number().int().min(0).optional(),
   xp_oferecido: z.number().int().min(0).optional(),
   nivel_dificuldade: z.enum(niveisDefinidos).optional(),
-  pre_requisitos: z.array(z.string()).optional()
+  pre_requisitos: z.array(z.string()).optional(),
+  ativo: z.boolean().optional()
 });
 
 export const updateCourseSchema = z.object({
@@ -22,7 +23,8 @@ export const updateCourseSchema = z.object({
   duracao_estimada: z.number().int().min(0).optional(),
   xp_oferecido: z.number().int().min(0).optional(),
   nivel_dificuldade: z.enum(niveisDefinidos).optional(),
-  pre_requisitos: z.array(z.string()).optional()
+  pre_requisitos: z.array(z.string()).optional(),
+  ativo: z.boolean().optional()
 });
 
 // Schemas de validação para categorias
