@@ -138,15 +138,43 @@ export async function updateCourseHandler(req: Request, res: Response, next: Nex
 }
 export async function setCourseActiveHandler(req: Request, res: Response, next: NextFunction) {
   try {
+    const { codigo } = req.params;
     const { active } = req.body as { active?: unknown };
+    const userRole = req.header('X-User-Role');
+    const userId = req.header('X-User-Id');
+    
     if (typeof active !== 'boolean') {
-      return res.status(400).json({ erro: 'dados_invalidos', mensagem: 'Campo active deve ser boolean', detalhes: [{ path: ['active'], message: 'must be boolean' }] });
+      return res.status(400).json({ 
+        erro: 'dados_invalidos', 
+        mensagem: 'Campo active deve ser boolean', 
+        detalhes: [{ path: ['active'], message: 'must be boolean' }] 
+      });
     }
 
-    const curso = await toggleCourseStatus(req.params.codigo, active);
+    const curso = await toggleCourseStatus(codigo, active);
     if (!curso) {
       return res.status(404).json({ erro: 'curso_nao_encontrado', mensagem: 'Curso não encontrado' });
     }
+    
+    // Validação: INSTRUTOR só pode ativar/desativar cursos sem inscrições ou que seja dele
+    if (userRole === 'INSTRUTOR') {
+      // Verificar se o curso pertence ao instrutor
+      if (curso.instrutor_id !== userId) {
+        return res.status(403).json({ 
+          erro: 'acesso_negado', 
+          mensagem: 'Você só pode ativar/desativar seus próprios cursos' 
+        });
+      }
+      
+      // Verificar se o curso tem inscrições
+      if ((curso.total_inscricoes || 0) > 0) {
+        return res.status(403).json({ 
+          erro: 'curso_com_inscricoes', 
+          mensagem: 'Não é possível ativar/desativar cursos com alunos inscritos. Entre em contato com um administrador.' 
+        });
+      }
+    }
+    
     res.json({ curso, mensagem: `Status do curso atualizado para ${active ? 'ativo' : 'inativo'}` });
   } catch (e) {
     next(e);
