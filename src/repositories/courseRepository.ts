@@ -191,7 +191,7 @@ export async function listAllCoursesWithStats(){
                c.duracao_estimada, c.xp_oferecido, c.nivel_dificuldade, c.ativo, 
                c.pre_requisitos, c.criado_em, c.atualizado_em
         from course_service.cursos c
-        order by c.ativo desc, c.atualizado_em desc
+        order by c.criado_em desc
       `);
       
       console.log(`[listAllCoursesWithStats] Found ${coursesResult.rows.length} courses`);
