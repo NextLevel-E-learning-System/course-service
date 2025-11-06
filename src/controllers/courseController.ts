@@ -170,7 +170,7 @@ export async function setCourseActiveHandler(req: Request, res: Response, next: 
       if ((curso.total_inscricoes || 0) > 0) {
         return res.status(403).json({ 
           erro: 'curso_com_inscricoes', 
-          mensagem: 'Não é possível ativar/desativar cursos com alunos inscritos. Entre em contato com um administrador.' 
+          mensagem: 'Não é possível ativar/desativar cursos com funcionários inscritos. Entre em contato com um administrador.' 
         });
       }
     }
