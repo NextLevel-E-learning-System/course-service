@@ -13,6 +13,11 @@ import {
 import { addModuleHandler, listModulesHandler, updateModuleHandler, deleteModuleHandler } from '../controllers/moduleController.js';
 import { listCategoriesHandler, getCategoryHandler, createCategoryHandler, updateCategoryHandler, deleteCategoryHandler } from '../controllers/categoryController.js';
 import { addMaterialHandler, listMaterialsHandler, deleteMaterialHandler } from '../controllers/materialController.js';
+import { 
+  listModulosCompletosHandler, 
+  getModuloCompletoHandler, 
+  atualizarTipoConteudoHandler 
+} from '../controllers/moduloCompostoController.js';
 
 export const courseRouter = Router();
 
@@ -41,6 +46,11 @@ courseRouter.post('/:codigo/modulos', addModuleHandler);
 courseRouter.get('/:codigo/modulos', listModulesHandler);
 courseRouter.patch('/:codigo/modulos/:moduloId', updateModuleHandler);
 courseRouter.delete('/modulos/:moduloId', deleteModuleHandler);
+
+// Rotas de módulos compostos (com materiais e avaliações)
+courseRouter.get('/:codigo/modulos/completos', listModulosCompletosHandler);
+courseRouter.get('/modulos/:id/completo', getModuloCompletoHandler);
+courseRouter.patch('/modulos/:id/atualizar-tipo', atualizarTipoConteudoHandler);
 
 // Rotas de materiais
 courseRouter.post('/modulos/:moduloId/materiais', addMaterialHandler);
