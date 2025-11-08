@@ -279,6 +279,21 @@ export async function listAllCoursesWithStats(){
             } catch (moduleError) {
               console.warn(`[listAllCoursesWithStats] Error counting modules for course ${course.codigo}:`, moduleError);
             }
+
+            // Buscar avaliações pendentes de correção para este curso
+            let pendenteCorrecao = 0;
+            try {
+              const pendentesResult = await c.query(`
+                SELECT COUNT(*) as pendentes
+                FROM assessment_service.tentativas t
+                JOIN assessment_service.avaliacoes a ON t.avaliacao_id = a.codigo
+                WHERE a.curso_id = $1 
+                AND t.status = 'AGUARDANDO_CORRECAO'
+              `, [course.codigo]);
+              pendenteCorrecao = parseInt(pendentesResult.rows[0]?.pendentes || '0');
+            } catch (pendentesError) {
+              console.warn(`[listAllCoursesWithStats] Error counting pending assessments for course ${course.codigo}:`, pendentesError);
+            }
             
             const stats = statsResult.rows[0] || {
               total_inscricoes: 0,
@@ -296,7 +311,8 @@ export async function listAllCoursesWithStats(){
                 taxa_conclusao: Number(stats.taxa_conclusao) || 0,
                 media_conclusao: stats.media_conclusao ? Number(stats.media_conclusao) : null,
                 total_modulos: Number(moduleCount) || 0,
-                xp_oferecido: Number(xpTotal) || 0
+                xp_oferecido: Number(xpTotal) || 0,
+                pendentes_correcao: pendenteCorrecao
               };
           } catch (error) {
             console.error(`[listAllCoursesWithStats] Error processing course ${course.codigo}:`, error);
@@ -310,7 +326,8 @@ export async function listAllCoursesWithStats(){
               total_conclusoes: 0,
               taxa_conclusao: 0,
               media_conclusao: null,
-              total_modulos: 0
+              total_modulos: 0,
+              pendentes_correcao: 0
             };
           }
         })
