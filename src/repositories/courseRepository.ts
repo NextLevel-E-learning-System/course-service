@@ -183,158 +183,97 @@ export async function getCourseWithStats(codigo: string) {
 export async function listAllCoursesWithStats(){
   return withClient(async c => {
     try {
-      console.log('[listAllCoursesWithStats] Starting query...');
+      console.log('[listAllCoursesWithStats] Starting optimized query...');
       
-      // Primeiro, buscar cursos básicos - simplificar query para evitar problemas de join
-      const coursesResult = await c.query(`
-        select c.codigo, c.titulo, c.descricao, c.categoria_id, c.instrutor_id, 
-               c.duracao_estimada, c.xp_oferecido, c.nivel_dificuldade, c.ativo, 
-               c.pre_requisitos, c.criado_em, c.atualizado_em
-        from course_service.cursos c
-        order by c.criado_em desc
+      const result = await c.query(`
+        SELECT 
+          c.codigo, 
+          c.titulo, 
+          c.descricao, 
+          c.categoria_id, 
+          c.instrutor_id, 
+          c.duracao_estimada, 
+          c.xp_oferecido, 
+          c.nivel_dificuldade, 
+          c.ativo, 
+          c.pre_requisitos, 
+          c.criado_em, 
+          c.atualizado_em,
+          -- Dados da categoria
+          cat.nome as categoria_nome,
+          cat.departamento_codigo,
+          -- Dados do instrutor
+          f.nome as instrutor_nome,
+          -- Estatísticas de progresso
+          COALESCE(stats.total_inscricoes, 0) as total_inscricoes,
+          COALESCE(stats.total_conclusoes, 0) as total_conclusoes,
+          COALESCE(stats.taxa_conclusao, 0) as taxa_conclusao,
+          -- Contagem de módulos e XP total
+          COALESCE(mod_stats.total_modulos, 0) as total_modulos,
+          COALESCE(mod_stats.xp_total, 0) as xp_total,
+          -- Avaliações pendentes
+          COALESCE(pend_stats.pendentes, 0) as pendentes_correcao
+        FROM course_service.cursos c
+        LEFT JOIN course_service.categorias cat ON c.categoria_id = cat.codigo
+        LEFT JOIN user_service.instrutores i ON c.instrutor_id = i.funcionario_id
+        LEFT JOIN user_service.funcionarios f ON i.funcionario_id = f.id
+        -- Subquery para estatísticas de progresso
+        LEFT JOIN LATERAL (
+          SELECT 
+            COUNT(ins.id) as total_inscricoes,
+            COUNT(CASE WHEN ins.status = 'CONCLUIDO' THEN 1 END) as total_conclusoes,
+            CASE 
+              WHEN COUNT(ins.id) > 0 THEN 
+                ROUND((COUNT(CASE WHEN ins.status = 'CONCLUIDO' THEN 1 END) * 100.0 / COUNT(ins.id))::numeric, 1)
+              ELSE 0 
+            END as taxa_conclusao
+          FROM progress_service.inscricoes ins
+          WHERE ins.curso_id = c.codigo
+        ) stats ON true
+        -- Subquery para módulos
+        LEFT JOIN LATERAL (
+          SELECT 
+            COUNT(m.id) as total_modulos,
+            COALESCE(SUM(m.xp_modulo), 0) as xp_total
+          FROM course_service.modulos m
+          WHERE m.curso_id = c.codigo
+        ) mod_stats ON true
+        -- Subquery para avaliações pendentes
+        LEFT JOIN LATERAL (
+          SELECT COUNT(*) as pendentes
+          FROM assessment_service.tentativas t
+          JOIN assessment_service.avaliacoes a ON t.avaliacao_id = a.codigo
+          WHERE a.curso_id = c.codigo 
+          AND t.status = 'AGUARDANDO_CORRECAO'
+        ) pend_stats ON true
+        ORDER BY c.criado_em DESC
       `);
       
-      console.log(`[listAllCoursesWithStats] Found ${coursesResult.rows.length} courses`);
+      console.log(`[listAllCoursesWithStats] Found ${result.rows.length} courses in optimized query`);
       
-      // Para cada curso, buscar dados relacionados, estatísticas e módulos
-      const coursesWithStats = await Promise.all(
-        coursesResult.rows.map(async (course) => {
-          try {
-            // Buscar dados da categoria
-            let categoryData = { categoria_nome: null, departamento_codigo: null };
-            if (course.categoria_id) {
-              try {
-                const catResult = await c.query(`
-                  select nome as categoria_nome, departamento_codigo
-                  from course_service.categorias 
-                  where codigo = $1
-                `, [course.categoria_id]);
-                if (catResult.rows[0]) {
-                  categoryData = catResult.rows[0];
-                }
-              } catch (catError) {
-                console.warn(`[listAllCoursesWithStats] Error fetching category for course ${course.codigo}:`, catError);
-              }
-            }
-
-            // Buscar dados do instrutor
-            let instructorData = { instrutor_nome: null };
-            if (course.instrutor_id) {
-              try {
-                const instResult = await c.query(`
-                  select f.nome as instrutor_nome
-                  from user_service.instrutores i
-                  join user_service.funcionarios f on i.funcionario_id = f.id
-                  where i.funcionario_id = $1
-                `, [course.instrutor_id]);
-                if (instResult.rows[0]) {
-                  instructorData = instResult.rows[0];
-                }
-              } catch (instError) {
-                console.warn(`[listAllCoursesWithStats] Error fetching instructor for course ${course.codigo}:`, instError);
-              }
-            }
-
-            // Buscar estatísticas de progresso - com fallback se schema não existir
-            let statsResult;
-            try {
-              statsResult = await c.query(`
-                select 
-                  count(ins.id) as total_inscricoes,
-                  count(case when ins.status = 'CONCLUIDO' then 1 end) as total_conclusoes,
-                  case 
-                    when count(ins.id) > 0 then 
-                      round((count(case when ins.status = 'CONCLUIDO' then 1 end) * 100.0 / count(ins.id))::numeric, 2)
-                    else 0 
-                  end as taxa_conclusao,
-                  avg(case when ins.status = 'CONCLUIDO' then ins.progresso_percentual end) as media_conclusao
-                from progress_service.inscricoes ins
-                where ins.curso_id = $1
-              `, [course.codigo]);
-            } catch (progressError) {
-              console.warn(`[listAllCoursesWithStats] Progress service unavailable for course ${course.codigo}:`, progressError);
-              statsResult = {
-                rows: [{
-                  total_inscricoes: 0,
-                  total_conclusoes: 0,
-                  taxa_conclusao: 0,
-                  media_conclusao: null
-                }]
-              };
-            }
-            
-            // Buscar contagem de módulos
-            let moduleCount = 0;
-              // Buscar soma do xp dos módulos
-              let xpTotal = 0;
-            try {
-              const modulesResult = await c.query(`
-                select count(m.id) as total_modulos
-                        , coalesce(sum(m.xp_modulo),0) as xp_total
-                from course_service.modulos m
-                where m.curso_id = $1
-              `, [course.codigo]);
-                moduleCount = modulesResult.rows[0]?.total_modulos || 0;
-                xpTotal = modulesResult.rows[0]?.xp_total || 0;
-            } catch (moduleError) {
-              console.warn(`[listAllCoursesWithStats] Error counting modules for course ${course.codigo}:`, moduleError);
-            }
-
-            // Buscar avaliações pendentes de correção para este curso
-            let pendenteCorrecao = 0;
-            try {
-              const pendentesResult = await c.query(`
-                SELECT COUNT(*) as pendentes
-                FROM assessment_service.tentativas t
-                JOIN assessment_service.avaliacoes a ON t.avaliacao_id = a.codigo
-                WHERE a.curso_id = $1 
-                AND t.status = 'AGUARDANDO_CORRECAO'
-              `, [course.codigo]);
-              pendenteCorrecao = parseInt(pendentesResult.rows[0]?.pendentes || '0');
-            } catch (pendentesError) {
-              console.warn(`[listAllCoursesWithStats] Error counting pending assessments for course ${course.codigo}:`, pendentesError);
-            }
-            
-            const stats = statsResult.rows[0] || {
-              total_inscricoes: 0,
-              total_conclusoes: 0,
-              taxa_conclusao: 0,
-              media_conclusao: null
-            };
-            
-              return {
-                ...course,
-                ...categoryData,
-                ...instructorData,
-                total_inscricoes: Number(stats.total_inscricoes) || 0,
-                total_conclusoes: Number(stats.total_conclusoes) || 0,
-                taxa_conclusao: Number(stats.taxa_conclusao) || 0,
-                media_conclusao: stats.media_conclusao ? Number(stats.media_conclusao) : null,
-                total_modulos: Number(moduleCount) || 0,
-                xp_oferecido: Number(xpTotal) || 0,
-                pendentes_correcao: pendenteCorrecao
-              };
-          } catch (error) {
-            console.error(`[listAllCoursesWithStats] Error processing course ${course.codigo}:`, error);
-            // Retornar curso sem estatísticas em caso de erro
-            return {
-              ...course,
-              categoria_nome: null,
-              departamento_codigo: null,
-              instrutor_nome: null,
-              total_inscricoes: 0,
-              total_conclusoes: 0,
-              taxa_conclusao: 0,
-              media_conclusao: null,
-              total_modulos: 0,
-              pendentes_correcao: 0
-            };
-          }
-        })
-      );
-      
-      console.log('[listAllCoursesWithStats] Query completed successfully');
-      return coursesWithStats;
+      // Mapear resultados removendo campos redundantes
+      return result.rows.map(row => ({
+        codigo: row.codigo,
+        titulo: row.titulo,
+        descricao: row.descricao,
+        categoria_id: row.categoria_id,
+        instrutor_id: row.instrutor_id,
+        duracao_estimada: row.duracao_estimada,
+        xp_oferecido: Number(row.xp_total) || 0, // XP total dos módulos
+        nivel_dificuldade: row.nivel_dificuldade,
+        ativo: row.ativo,
+        pre_requisitos: row.pre_requisitos,
+        criado_em: row.criado_em,
+        atualizado_em: row.atualizado_em,
+        categoria_nome: row.categoria_nome,
+        departamento_codigo: row.departamento_codigo,
+        instrutor_nome: row.instrutor_nome,
+        total_inscricoes: Number(row.total_inscricoes) || 0,
+        total_conclusoes: Number(row.total_conclusoes) || 0,
+        taxa_conclusao: Number(row.taxa_conclusao) || 0,
+        total_modulos: Number(row.total_modulos) || 0,
+        pendentes_correcao: Number(row.pendentes_correcao) || 0
+      }));
     } catch (error) {
       console.error('[listAllCoursesWithStats] Database error:', error);
       throw error;
