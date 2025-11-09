@@ -4,6 +4,7 @@ import {
   getModuloCompleto,
   atualizarTipoConteudo 
 } from '../repositories/moduloCompostoRepository.js';
+import { getPresignedUrl } from '../utils/storageClient.js';
 
 /**
  * GET /cursos/:codigo/modulos/completos
@@ -19,10 +20,32 @@ export async function listModulosCompletosHandler(
     
     const modulos = await getModulosCompletosByCurso(codigo);
     
+    // Gerar presigned URLs para os materiais (S3)
+    const modulosComUrls = await Promise.all(
+      modulos.map(async (modulo) => {
+        const materiaisComUrls = await Promise.all(
+          modulo.materiais.map(async (material) => {
+          const bucket = process.env.STORAGE_BUCKET_MATERIAIS || 'nextlevel-elearning-prod';
+            const url = await getPresignedUrl(bucket, material.storage_key, 300); // 5 minutos
+            
+            return {
+              ...material,
+              url_download: url,
+            };
+          })
+        );
+        
+        return {
+          ...modulo,
+          materiais: materiaisComUrls,
+        };
+      })
+    );
+    
     res.json({
       success: true,
-      items: modulos,
-      total: modulos.length,
+      items: modulosComUrls,
+      total: modulosComUrls.length,
       mensagem: 'Módulos completos listados com sucesso'
     });
   } catch (error) {
@@ -52,9 +75,24 @@ export async function getModuloCompletoHandler(
       });
     }
     
+    // Gerar presigned URLs para os materiais (S3)
+    const bucket = process.env.STORAGE_BUCKET_MATERIAIS || 'nextlevel-elearning-prod';
+    const materiaisComUrls = await Promise.all(
+      modulo.materiais.map(async (material) => {
+        const url = await getPresignedUrl(bucket, material.storage_key, 300);
+        return {
+          ...material,
+          url_download: url,
+        };
+      })
+    );
+    
     res.json({
       success: true,
-      data: modulo,
+      data: {
+        ...modulo,
+        materiais: materiaisComUrls,
+      },
       mensagem: 'Módulo obtido com sucesso'
     });
   } catch (error) {
