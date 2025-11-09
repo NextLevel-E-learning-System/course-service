@@ -3,12 +3,73 @@ import { ModuloCompleto } from '../types/moduloComposto.js';
 
 /**
  * Busca módulos completos de um curso (com materiais e avaliações)
- * Usa a view v_modulos_completos
+ * Query direta sem usar views
  */
 export async function getModulosCompletosByCurso(cursoId: string): Promise<ModuloCompleto[]> {
   return withClient(async (client) => {
     const result = await client.query<ModuloCompleto>(
-      `SELECT * FROM course_service.v_modulos_completos WHERE curso_id = $1 ORDER BY ordem ASC`,
+      `
+      SELECT 
+        m.id as modulo_id,
+        m.curso_id,
+        m.ordem,
+        m.titulo,
+        m.conteudo,
+        m.tipo_conteudo,
+        m.obrigatorio,
+        m.xp_modulo,
+        m.criado_em,
+        m.atualizado_em,
+        -- Agregar materiais do módulo
+        COALESCE(
+          json_agg(
+            DISTINCT jsonb_build_object(
+              'id', mat.id,
+              'nome_arquivo', mat.nome_arquivo,
+              'tipo_arquivo', mat.tipo_arquivo,
+              'tamanho', mat.tamanho,
+              'storage_key', mat.storage_key,
+              'criado_em', mat.criado_em
+            )
+          ) FILTER (WHERE mat.id IS NOT NULL),
+          '[]'::json
+        ) as materiais,
+        -- Agregar avaliação do módulo (apenas uma por módulo)
+        CASE 
+          WHEN av.codigo IS NOT NULL THEN
+            json_build_object(
+              'codigo', av.codigo,
+              'titulo', av.titulo,
+              'tempo_limite', av.tempo_limite,
+              'tentativas_permitidas', av.tentativas_permitidas,
+              'nota_minima', av.nota_minima,
+              'ativo', av.ativo
+            )
+          ELSE NULL
+        END as avaliacao
+      FROM course_service.modulos m
+      LEFT JOIN course_service.materiais mat ON mat.modulo_id = m.id
+      LEFT JOIN assessment_service.avaliacoes av ON av.modulo_id = m.id
+      WHERE m.curso_id = $1
+      GROUP BY 
+        m.id,
+        m.curso_id,
+        m.ordem,
+        m.titulo,
+        m.conteudo,
+        m.tipo_conteudo,
+        m.obrigatorio,
+        m.xp_modulo,
+        m.criado_em,
+        m.atualizado_em,
+        av.codigo,
+        av.titulo,
+        av.tempo_limite,
+        av.tentativas_permitidas,
+        av.nota_minima,
+        av.ativo
+      ORDER BY m.ordem ASC
+      `,
       [cursoId]
     );
     
@@ -18,11 +79,72 @@ export async function getModulosCompletosByCurso(cursoId: string): Promise<Modul
 
 /**
  * Busca um módulo completo específico
+ * Query direta sem usar views
  */
 export async function getModuloCompleto(moduloId: string): Promise<ModuloCompleto | null> {
   return withClient(async (client) => {
     const result = await client.query<ModuloCompleto>(
-      `SELECT * FROM course_service.v_modulos_completos WHERE modulo_id = $1`,
+      `
+      SELECT 
+        m.id as modulo_id,
+        m.curso_id,
+        m.ordem,
+        m.titulo,
+        m.conteudo,
+        m.tipo_conteudo,
+        m.obrigatorio,
+        m.xp_modulo,
+        m.criado_em,
+        m.atualizado_em,
+        -- Agregar materiais do módulo
+        COALESCE(
+          json_agg(
+            DISTINCT jsonb_build_object(
+              'id', mat.id,
+              'nome_arquivo', mat.nome_arquivo,
+              'tipo_arquivo', mat.tipo_arquivo,
+              'tamanho', mat.tamanho,
+              'storage_key', mat.storage_key,
+              'criado_em', mat.criado_em
+            )
+          ) FILTER (WHERE mat.id IS NOT NULL),
+          '[]'::json
+        ) as materiais,
+        -- Agregar avaliação do módulo (apenas uma por módulo)
+        CASE 
+          WHEN av.codigo IS NOT NULL THEN
+            json_build_object(
+              'codigo', av.codigo,
+              'titulo', av.titulo,
+              'tempo_limite', av.tempo_limite,
+              'tentativas_permitidas', av.tentativas_permitidas,
+              'nota_minima', av.nota_minima,
+              'ativo', av.ativo
+            )
+          ELSE NULL
+        END as avaliacao
+      FROM course_service.modulos m
+      LEFT JOIN course_service.materiais mat ON mat.modulo_id = m.id
+      LEFT JOIN assessment_service.avaliacoes av ON av.modulo_id = m.id
+      WHERE m.id = $1
+      GROUP BY 
+        m.id,
+        m.curso_id,
+        m.ordem,
+        m.titulo,
+        m.conteudo,
+        m.tipo_conteudo,
+        m.obrigatorio,
+        m.xp_modulo,
+        m.criado_em,
+        m.atualizado_em,
+        av.codigo,
+        av.titulo,
+        av.tempo_limite,
+        av.tentativas_permitidas,
+        av.nota_minima,
+        av.ativo
+      `,
       [moduloId]
     );
     
