@@ -16,6 +16,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+        "cookie-parser": "^1.4.7",
   "@aws-sdk/client-s3": "^3.609.0",
   "@aws-sdk/s3-request-presigner": "^3.609.0",
     "pg": "^8.11.5",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@types/amqplib": "^0.10.7",
     "@types/cors": "^2.8.17",
+        "@types/cookie-parser": "^1.4.9",
     "@types/express": "^4.17.21",
     "@types/node": "^20.11.30",
     "@types/pg": "^8.15.5",
