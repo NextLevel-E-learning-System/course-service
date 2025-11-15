@@ -3,35 +3,25 @@ import {
   createCourseHandler, 
   getCourseHandler, 
   getAllCoursesHandler,
-  getCoursesByCategoryHandler,
-  getCoursesByDepartmentHandler,
   updateCourseHandler, 
   setCourseActiveHandler, 
   duplicateCourseHandler,
-  deleteCourseHandler,
 } from '../controllers/courseController.js';
 import { addModuleHandler, listModulesHandler, updateModuleHandler, deleteModuleHandler } from '../controllers/moduleController.js';
-import { listCategoriesHandler, getCategoryHandler, createCategoryHandler, updateCategoryHandler, deleteCategoryHandler } from '../controllers/categoryController.js';
+import { listCategoriesHandler, createCategoryHandler, updateCategoryHandler, deleteCategoryHandler } from '../controllers/categoryController.js';
 import { addMaterialHandler, listMaterialsHandler, deleteMaterialHandler } from '../controllers/materialController.js';
-import { 
-  listModulosCompletosHandler, 
-  getModuloCompletoHandler, 
-  atualizarTipoConteudoHandler 
-} from '../controllers/moduloCompostoController.js';
+import { getModuloCompletoHandler } from '../controllers/moduloCompostoController.js';
 
 export const courseRouter = Router();
 
 // Rotas de categorias
 courseRouter.get('/categorias', listCategoriesHandler);
 courseRouter.post('/categorias', createCategoryHandler);
-courseRouter.get('/categorias/:codigo', getCategoryHandler);
 courseRouter.put('/categorias/:codigo', updateCategoryHandler);
 courseRouter.delete('/categorias/:codigo', deleteCategoryHandler);
 
 // Rotas de cursos - listagem
 courseRouter.get('/', getAllCoursesHandler); // Lista todos os cursos com filtros baseados no role
-courseRouter.get('/categoria/:categoriaId', getCoursesByCategoryHandler); // Lista cursos por categoria
-courseRouter.get('/departamento/:departmentCode', getCoursesByDepartmentHandler); // Lista cursos por departamento
 
 // Rotas de cursos - CRUD individual
 courseRouter.post('/', createCourseHandler);
@@ -39,7 +29,6 @@ courseRouter.get('/:codigo', getCourseHandler);
 courseRouter.patch('/:codigo', updateCourseHandler);
 courseRouter.patch('/:codigo/active', setCourseActiveHandler);
 courseRouter.post('/:codigo/duplicar', duplicateCourseHandler);
-courseRouter.delete('/:codigo', deleteCourseHandler);
 
 // Rotas de módulos
 courseRouter.post('/:codigo/modulos', addModuleHandler);
@@ -48,9 +37,7 @@ courseRouter.patch('/:codigo/modulos/:moduloId', updateModuleHandler);
 courseRouter.delete('/modulos/:moduloId', deleteModuleHandler);
 
 // Rotas de módulos compostos (com materiais e avaliações)
-courseRouter.get('/:codigo/modulos/completos', listModulosCompletosHandler);
 courseRouter.get('/modulos/:id/completo', getModuloCompletoHandler);
-courseRouter.patch('/modulos/:id/atualizar-tipo', atualizarTipoConteudoHandler);
 
 // Rotas de materiais
 courseRouter.post('/modulos/:moduloId/materiais', addMaterialHandler);

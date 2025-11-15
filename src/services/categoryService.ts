@@ -14,11 +14,6 @@ export async function getCategories(): Promise<Category[]> {
   return listCategories();
 }
 
-export async function getCategoryById(codigo: string): Promise<Category | null> {
-  const category = await getCategoryByCode(codigo);
-  return category ?? null;
-}
-
 export async function createCategory(data: CategoryCreate): Promise<Category | null> {
   const existing = await getCategoryByCode(data.codigo);
   if (existing) {

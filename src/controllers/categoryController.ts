@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { 
   getCategories, 
-  getCategoryById, 
   createCategory, 
   updateCategoryById, 
   deleteCategoryById 
@@ -16,17 +15,6 @@ export async function listCategoriesHandler(_req: Request, res: Response, next: 
   try {
     const categories = await getCategories();
     res.json({ items: categories, mensagem: 'Categorias listadas com sucesso' });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function getCategoryHandler(req: Request, res: Response, next: NextFunction) {
-  try {
-    const { codigo } = categoryParamsSchema.parse(req.params);
-    const category = await getCategoryById(codigo);
-    if (!category) return res.status(404).json({ erro: 'categoria_nao_encontrada', mensagem: 'Categoria não encontrada' });
-    res.json({ categoria: category, mensagem: 'Categoria obtida com sucesso' });
   } catch (error) {
     next(error);
   }

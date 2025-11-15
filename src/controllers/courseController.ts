@@ -8,8 +8,7 @@ import {
   duplicateCourse,
   getAllCourses,
   getCoursesByCategory,
-  getCoursesByDepartment,
-  getCourseModulesService
+  getCoursesByDepartment
 } from '../services/courseService.js';
 
 
@@ -97,26 +96,6 @@ export async function getAllCoursesHandler(req: Request, res: Response, next: Ne
   }
 }
 
-export async function getCoursesByCategoryHandler(req: Request, res: Response, next: NextFunction) {
-  try {
-    const categoriaId = req.params.categoriaId;
-    const result = await getCoursesByCategory(categoriaId);
-    res.json({ items: result, total: result.length, mensagem: 'Cursos da categoria listados com sucesso' });
-  } catch (e) {
-    next(e);
-  }
-}
-
-export async function getCoursesByDepartmentHandler(req: Request, res: Response, next: NextFunction) {
-  try {
-    const departmentCode = req.params.departmentCode;
-    const result = await getCoursesByDepartment(departmentCode);
-    res.json({ items: result, total: result.length, mensagem: 'Cursos do departamento listados com sucesso' });
-  } catch (e) {
-    next(e);
-  }
-}
-
 export async function updateCourseHandler(req: Request, res: Response, next: NextFunction) {
   const parsed = updateCourseSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -190,27 +169,6 @@ export async function duplicateCourseHandler(req: Request, res: Response, next: 
       return res.status(500).json({ erro: result.error, mensagem: 'Erro interno ao duplicar curso' });
     }
     res.status(201).json({ duplicacao: result, mensagem: 'Curso duplicado com sucesso' });
-  } catch (e) {
-    next(e);
-  }
-}
-
-export async function deleteCourseHandler(req: Request, res: Response, next: NextFunction) {
-  try {
-    await toggleCourseStatus(req.params.codigo, false);
-    res.json({ inactivated: true, mensagem: 'Curso desativado com sucesso' });
-  } catch (e) {
-    next(e);
-  }
-}
-
-export async function getCourseModulesHandler(req: Request, res: Response, next: NextFunction) {
-  try {
-    const modulos = await getCourseModulesService(req.params.codigo);
-    if (!modulos) {
-      return res.status(404).json({ erro: 'curso_nao_encontrado', mensagem: 'Curso não encontrado' });
-    }
-    res.json({ items: modulos, mensagem: 'Módulos do curso listados com sucesso' });
   } catch (e) {
     next(e);
   }

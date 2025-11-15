@@ -281,15 +281,3 @@ export async function listAllCoursesWithStats(){
   });
 }
 
-export async function getCourseModules(cursoId: string) {
-  return withClient(async c => {
-    const r = await c.query(`
-      select m.id, m.titulo, m.ordem, m.obrigatorio, m.xp_modulo as xp, 
-             m.conteudo, m.tipo_conteudo, m.criado_em, m.atualizado_em
-      from course_service.modulos m
-      where m.curso_id = $1
-      order by m.ordem asc
-    `, [cursoId]);
-    return r.rows;
-  });
-}

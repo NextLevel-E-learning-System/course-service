@@ -1,4 +1,4 @@
-import { insertCourse, findByCodigo, updateCourseDb, setCourseActiveDb, duplicateCourseDb, listCoursesByCategory, listCoursesByDepartment, getCourseWithStats, listAllCoursesWithStats, getCourseModules } from '../repositories/courseRepository.js';
+import { insertCourse, findByCodigo, updateCourseDb, setCourseActiveDb, duplicateCourseDb, listCoursesByCategory, listCoursesByDepartment, getCourseWithStats, listAllCoursesWithStats } from '../repositories/courseRepository.js';
 import { NivelDificuldade } from '../types/domain.js';
 interface CreateCourseInput { codigo:string; titulo:string; descricao?:string; categoria_id?:string; instrutor_id?:string; duracao_estimada?:number; xp_oferecido?:number; nivel_dificuldade?:NivelDificuldade; pre_requisitos?:string[] }
 interface UpdateCourseInput { titulo?:string; descricao?:string; categoria_id?:string; instrutor_id?:string; duracao_estimada?:number; xp_oferecido?:number; nivel_dificuldade?:NivelDificuldade; pre_requisitos?:string[] }
@@ -55,12 +55,6 @@ export async function duplicateCourse(codigo:string){
   const newCodigo = await duplicateCourseDb(codigo);
   if (!newCodigo) return { error: 'erro_duplicar_curso' }; // falha na duplicação
   return { codigo_original: codigo, codigo_copia: newCodigo };
-}
-
-export async function getCourseModulesService(codigo: string) {
-  const existing = await findByCodigo(codigo);
-  if (!existing) return null; // não encontrado
-  return getCourseModules(codigo);
 }
 
  
